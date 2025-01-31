@@ -1,7 +1,10 @@
 import "package:flutter/material.dart";
 import "package:kakao_farmer/glob.dart";
+import "package:kakao_farmer/screens/buy_sell_screen.dart";
 import "package:kakao_farmer/screens/learning_screen.dart";
 import "package:kakao_farmer/screens/login_screen.dart";
+import "package:kakao_farmer/screens/profil_screen.dart";
+import "package:kakao_farmer/screens/statistics_screen.dart";
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -97,21 +100,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: Icon(Icons.sell),
                 title: Text('Achats - Ventes'),
                 onTap: () {
-                  _updateScreen(const LearningScreen());
+                  _updateScreen(const BuySellScreen());
                 },
               ),
               ListTile(
                 leading: Icon(Icons.graphic_eq),
                 title: Text('Statistiques'),
                 onTap: () {
-                  _updateScreen(const LearningScreen());
+                  _updateScreen(const StatisticsScreen());
                 },
               ),
               ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Paramètres'),
+                leading: Icon(Icons.person),
+                title: Text('Profil'),
                 onTap: () {
-                  _updateScreen(const LearningScreen());
+                  _updateScreen(const ProfilScreen());
                 },
               ),
               ListTile(

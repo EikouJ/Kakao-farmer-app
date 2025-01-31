@@ -1,29 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:kakao_farmer/screens/learn_tabs/posts_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/reading_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/video_screen_tab.dart';
 
-class LearningScreen extends StatefulWidget {
-  const LearningScreen({super.key});
+class BuySellScreen extends StatefulWidget {
+  const BuySellScreen({super.key});
 
   @override
-  State<LearningScreen> createState() => _LearningScreenState();
+  State<BuySellScreen> createState() => _BuySellScreenState();
 }
 
-class _LearningScreenState extends State<LearningScreen> {
+class _BuySellScreenState extends State<BuySellScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Column(
         children: <Widget>[
           Expanded(
             child: TabBarView(
-              children: [
-                VideoScreenTab(),
-                ReadingScreenTab(),
-                PostsScreenTab()
-              ],
+              children: [Text("BUY"), Text("SELL")],
             ),
           ),
           Container(
@@ -40,9 +33,8 @@ class _LearningScreenState extends State<LearningScreen> {
                 ]),
             child: TabBar(
               tabs: [
-                Tab(icon: Icon(Icons.video_collection_outlined), text: "Video"),
-                Tab(icon: Icon(Icons.book_outlined), text: "Lectures"),
-                Tab(icon: Icon(Icons.post_add_outlined), text: "Postes"),
+                Tab(icon: Icon(Icons.attach_money_sharp), text: "Achats"),
+                Tab(icon: Icon(Icons.sell_outlined), text: "Ventes")
               ],
             ),
           )

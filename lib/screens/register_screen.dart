@@ -273,6 +273,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 )),
               ),
             ),
+            if (_isloading)
+              Container(
+                color: Colors.black54, // Fond semi-transparent
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Color.fromARGB(255, 0, 0, 128),
+                  ), // Spinner
+                ),
+              )
           ],
         ),
       ),
