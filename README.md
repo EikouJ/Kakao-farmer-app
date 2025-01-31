@@ -21,7 +21,6 @@ KakaoFarmer est une application mobile développée avec Flutter qui connecte le
 - Flutter SDK >= 3.0.0
 - Dart >= 2.17.0
 - Android SDK >= 21
-- Firebase
 - FastApi (Python) pour le backend
 
 ## Installation
@@ -37,13 +36,7 @@ cd Kakao-farmer-app
 flutter pub get
 ```
 
-3. Configurer Firebase :
-   - Créer un projet Firebase
-   - Télécharger le fichier google-services.json
-   - Placer le fichier dans android/app/
-   - Configurer les clés API dans le fichier .env
-
-4. Lancer l'application :
+3. Lancer l'application :
 ```bash
 flutter run
 ```
@@ -59,16 +52,6 @@ lib/
 ├── utils/         # Utilitaires
 ├── widgets/       # Widgets réutilisables
 └── main.dart      # Point d'entrée de l'application
-```
-
-## Configuration
-
-Créer un fichier `.env` à la racine du projet :
-
-```
-API_URL=votre_url_api
-FIREBASE_API_KEY=votre_cle_firebase
-PAYMENT_API_KEY=votre_cle_paiement
 ```
 
 ## Tests
