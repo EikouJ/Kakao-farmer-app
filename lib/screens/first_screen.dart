@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:kakao_farmer/screens/first_screen_tabs/home_screen_tab.dart';
+import 'package:kakao_farmer/screens/first_screen_tabs/scanner_screen_tab.dart';
+import 'package:kakao_farmer/screens/first_screen_tabs/statistics_screen_tab.dart';
 import 'package:kakao_farmer/screens/learn_tabs/add_formation_screen_tab.dart';
 import 'package:kakao_farmer/screens/learn_tabs/reading_screen_tab.dart';
 import 'package:kakao_farmer/screens/learn_tabs/video_screen_tab.dart';
 
-class LearningScreen extends StatefulWidget {
-  const LearningScreen({super.key});
+class FirstScreen extends StatefulWidget {
+  const FirstScreen({super.key});
 
   @override
-  State<LearningScreen> createState() => _LearningScreenState();
+  State<FirstScreen> createState() => _FirstScreenState();
 }
 
-class _LearningScreenState extends State<LearningScreen> {
+class _FirstScreenState extends State<FirstScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -21,9 +24,9 @@ class _LearningScreenState extends State<LearningScreen> {
           Expanded(
             child: TabBarView(
               children: [
-                VideoScreenTab(),
-                ReadingScreenTab(),
-                AddFormationScreenTab()
+                ScannerScreenTab(),
+                HomeScreenTab(),
+                StatisticsScreenTab()
               ],
             ),
           ),
@@ -41,9 +44,9 @@ class _LearningScreenState extends State<LearningScreen> {
                 ]),
             child: TabBar(
               tabs: [
-                Tab(icon: Icon(Icons.video_collection_outlined), text: "Video"),
-                Tab(icon: Icon(Icons.menu_book_outlined), text: "Lecture"),
-                Tab(icon: Icon(Icons.post_add), text: "Poster"),
+                Tab(icon: Icon(Icons.camera), text: "Scanner"),
+                Tab(icon: Icon(Icons.home), text: "Accueil"),
+                Tab(icon: Icon(Icons.graphic_eq), text: "Statistiques"),
               ],
             ),
           )

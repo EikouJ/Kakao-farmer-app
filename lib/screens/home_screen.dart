@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:kakao_farmer/glob.dart";
 import "package:kakao_farmer/screens/buy_sell_screen.dart";
+import "package:kakao_farmer/screens/first_screen.dart";
 import "package:kakao_farmer/screens/learning_screen.dart";
 import "package:kakao_farmer/screens/login_screen.dart";
 import "package:kakao_farmer/screens/profil_screen.dart";
@@ -33,100 +34,133 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Kakao Farmer'),
-          centerTitle: true,
-          actions: [
-            IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () {
-                  showMenu(
-                    context: context,
-                    position: RelativeRect.fromLTRB(100, 100, 0, 0),
-                    items: [
-                      PopupMenuItem<int>(
-                        value: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.logout,
-                              color: Theme.of(context).colorScheme.secondary,
+      appBar: AppBar(
+        title: const Text('Kakao Farmer'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.more_vert),
+              onPressed: () {
+                showMenu(
+                  context: context,
+                  position: RelativeRect.fromLTRB(100, 100, 0, 0),
+                  items: [
+                    PopupMenuItem<int>(
+                      enabled: false,
+                      child: Column(
+                        children: [
+                          Text(
+                            'Profil',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Text('Déconnexion')
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 10),
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundImage: AssetImage(
+                                'assets/avatar.png'), // Replace with your avatar image
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                color: Theme.of(context).colorScheme.secondary,
+                                tooltip: 'Modifier le Profil',
+                                onPressed: () {
+                                  _updateScreen(const ProfilScreen());
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.logout),
+                                color: Theme.of(context).colorScheme.secondary,
+                                tooltip: "Deconnexion",
+                                onPressed: () {
+                                  _logoutLogic();
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ).then((value) {
-                    switch (value) {
-                      case 0:
-                        _logoutLogic();
-                        break;
-                      default:
-                        break;
-                    }
-                  });
-                })
+                    ),
+                  ],
+                ).then((value) {
+                  switch (value) {
+                    case 0:
+                      _logoutLogic();
+                      break;
+                    default:
+                      break;
+                  }
+                });
+              })
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Accueil'),
+              onTap: () {
+                _updateScreen(const FirstScreen());
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.tv),
+              title: Text('Formation'),
+              onTap: () {
+                _updateScreen(const LearningScreen());
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.sell),
+              title: Text('Achats - Ventes'),
+              onTap: () {
+                _updateScreen(const BuySellScreen());
+              },
+            ),
           ],
         ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                ),
-                child: Text(
-                  'Menu',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.tv),
-                title: Text('Formation'),
-                onTap: () {
-                  _updateScreen(const LearningScreen());
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.sell),
-                title: Text('Achats - Ventes'),
-                onTap: () {
-                  _updateScreen(const BuySellScreen());
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.graphic_eq),
-                title: Text('Statistiques'),
-                onTap: () {
-                  _updateScreen(const StatisticsScreen());
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Profil'),
-                onTap: () {
-                  _updateScreen(const ProfilScreen());
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.logout),
-                title: Text('Déconnexion'),
-                onTap: () {
-                  _logoutLogic();
-                },
-              ),
-            ],
+      ),
+      body: _currentScreen,
+      /*bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_sharp),
+            label: 'Scanner',
           ),
-        ),
-        body: _currentScreen);
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.graphic_eq),
+            label: 'Statistiques',
+          ),
+        ],
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 1, // "Accueil" est sélectionné par défaut
+        backgroundColor: Colors.white,
+      ),*/
+    );
   }
 }

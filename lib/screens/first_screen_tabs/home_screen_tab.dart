@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:kakao_farmer/screens/learn_tabs/screens/create_post_screen.dart';
 import 'package:kakao_farmer/widgets/post_widget.dart';
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
 
-class ReadingScreenTab extends StatefulWidget {
-  const ReadingScreenTab({super.key});
+class HomeScreenTab extends StatefulWidget {
+  const HomeScreenTab({super.key});
 
   @override
-  State<ReadingScreenTab> createState() => _ReadingScreenTabState();
+  State<HomeScreenTab> createState() => _HomeScreenTabState();
 }
 
-class _ReadingScreenTabState extends State<ReadingScreenTab> {
+class _HomeScreenTabState extends State<HomeScreenTab> {
   static const _pageSize = 5;
   final PagingController<int, String> _pagingController =
       PagingController(firstPageKey: 0);
@@ -60,7 +61,22 @@ class _ReadingScreenTabState extends State<ReadingScreenTab> {
 
   @override
   Widget build(BuildContext context) {
-    return PostWidget(image: null, description: "Description");
+    return Scaffold(
+      body: PostWidget(image: null, description: "Description"),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const CreatePostScreen()));
+        },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+      ),
+    );
     /*Container(
         padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
         child: PagedListView<int, String>(

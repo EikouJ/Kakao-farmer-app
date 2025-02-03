@@ -22,17 +22,15 @@ class MyApp extends StatelessWidget {
       title: "Kakao Farmer",
       theme: ThemeData(
         primaryColor: const Color.fromARGB(255, 131, 41, 41), // Marron foncé
-        scaffoldBackgroundColor: Color(0xFFD7CCC8), // Beige
+        scaffoldBackgroundColor: Color.fromARGB(255, 230, 230, 230), // Beige
         colorScheme: ColorScheme(
           primary: const Color.fromARGB(255, 131, 41, 41), // Marron foncé
           secondary: Color(0xFF2E7D32), // Vert forêt
-          surface: Color(0xFFD7CCC8), // Beige
-          background: Color(0xFFD7CCC8), // Fond général
+          surface: Color.fromARGB(255, 230, 230, 230), // Beige
           error: Colors.red,
           onPrimary: Colors.white, // Texte sur fond marron
           onSecondary: Colors.white, // Texte sur fond vert
           onSurface: Colors.black, // Texte principal
-          onBackground: Colors.black,
           onError: Colors.white,
           brightness: Brightness.light,
         ),

@@ -3,16 +3,36 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
 import 'package:kakao_farmer/widgets/video_player_widget.dart';
 
-class VideoScreenTab extends StatefulWidget {
-  const VideoScreenTab({super.key});
-
+class ScannerScreenTab extends StatefulWidget {
   @override
-  // ignore: library_private_types_in_public_api
-  _VideoScreenTabState createState() => _VideoScreenTabState();
+  _ScannerScreenTabState createState() => _ScannerScreenTabState();
 }
 
-class _VideoScreenTabState extends State<VideoScreenTab> {
-  static const _pageSize = 5;
+class _ScannerScreenTabState extends State<ScannerScreenTab> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+        child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.error_outline,
+          color: Colors.grey,
+          size: 80,
+        ),
+        const SizedBox(
+          height: 15,
+        ),
+        Text(
+          'Vue de camera',
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.w700, color: Colors.grey),
+        )
+      ],
+    ));
+  }
+  /*static const _pageSize = 5;
   final PagingController<int, String> _pagingController =
       PagingController(firstPageKey: 0);
 
@@ -84,5 +104,5 @@ class _VideoScreenTabState extends State<VideoScreenTab> {
   void dispose() {
     _pagingController.dispose();
     super.dispose();
-  }
+  }*/
 }

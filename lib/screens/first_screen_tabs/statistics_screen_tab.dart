@@ -3,14 +3,14 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:kakao_farmer/screens/learn_tabs/screens/create_post_screen.dart';
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
 
-class PostsScreenTab extends StatefulWidget {
-  const PostsScreenTab({super.key});
+class StatisticsScreenTab extends StatefulWidget {
+  const StatisticsScreenTab({super.key});
 
   @override
-  State<PostsScreenTab> createState() => _PostsScreenTabState();
+  State<StatisticsScreenTab> createState() => _StatisticsScreenTabState();
 }
 
-class _PostsScreenTabState extends State<PostsScreenTab> {
+class _StatisticsScreenTabState extends State<StatisticsScreenTab> {
   static const _pageSize = 5;
   final PagingController<int, String> _pagingController =
       PagingController(firstPageKey: 0);
