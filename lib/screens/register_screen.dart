@@ -18,49 +18,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final String apiHead = Glob.apiHead;
 
   // Form variables
-  String name = "", email = "", password = "", cPassword = "";
+  String name = "", username = "", email = "", password = "", cPassword = "";
+
+  String errorMsg = "";
+
   final _formKey = GlobalKey<FormState>();
 
   // For spinner management
   bool _isloading = false;
 
+  // Generate unique username using timestamp
+  String generateUsername() {
+    String timestampBase36 =
+        DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+
+    return "user_$timestampBase36";
+  }
+
   // Implement logic of user registration
-  Future<void> _registerLogic(
-      String nameDt, String emailDt, String passwordDt) async {
+  Future<void> _registerLogic(String nameDt, String usernameDt, String emailDt,
+      String passwordDt) async {
     try {
-      final response = await http.post(Uri.parse("$apiHead/auth/register"),
+      final response = await http.post(Uri.parse("$apiHead/users/register"),
           headers: <String, String>{
             "Content-type": "application/json;charset=UTF-8"
           },
           body: jsonEncode(<String, String>{
             "name": nameDt,
+            "username": usernameDt,
             "email": emailDt,
-            "password": passwordDt
+            "password": passwordDt,
+            "status": "user"
           }));
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Votre compte a été créé avec succès")),
         );
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
       } else if (response.statusCode == 409) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        /*ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text(
-                  "Un utilisateur avec ce nom, cet email ou ce numéro de téléphone existe déjà")),
-        );
+                  "Un utilisateur avec la même adresse email existe déjà")),
+        );*/
+
+        setState(() {
+          errorMsg =
+              "Un utilisateur avec la même adresse email ou le même nom d'utilisateur existe déjà";
+        });
       } else {
         print(response.body);
 
         print("L'enregistrement a échoué : ${response.statusCode}");
 
         final data = json.decode(response.body);
-        if (data["message"] != null) {
+        /*if (data["message"] != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data["message"])),
           );
-        }
+        }*/
+        setState(() {
+          errorMsg = "Une erreur inattendue s'est produite";
+        });
       }
 
       setState(() {
@@ -119,6 +140,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               )
                             ],
                           ),
+                          if (errorMsg != "") ...[
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            Text(
+                              errorMsg,
+                              style: TextStyle(color: Colors.red, fontSize: 16),
+                            )
+                          ],
                           const SizedBox(
                             height: 20,
                           ),
@@ -143,6 +173,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             onSaved: (value) {
                               name = value!;
+                              errorMsg = "";
+                            },
+                          ),
+                          const SizedBox(
+                            height: 25,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'Nom d\'utilisateur',
+                              labelStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey),
+                              ),
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Entrez votre nom d'utilisateur";
+                              }
+                              return null;
+                            },
+                            onSaved: (value) {
+                              username = value!;
+                              errorMsg = "";
                             },
                           ),
                           const SizedBox(
@@ -169,6 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             onSaved: (value) {
                               email = value!;
+                              errorMsg = "";
                             },
                           ),
                           const SizedBox(
@@ -199,6 +258,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             onChanged: (value) {
                               password = value;
+                              errorMsg = "";
                             },
                             onSaved: (value) {
                               password = value!;
@@ -244,7 +304,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   setState(() {
                                     _isloading = true;
                                   });
-                                  _registerLogic(name, email, password);
+                                  _registerLogic(
+                                      name, username, email, password);
                                 }
                               },
                               style: ElevatedButton.styleFrom(

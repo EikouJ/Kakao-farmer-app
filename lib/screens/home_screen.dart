@@ -4,6 +4,7 @@ import "package:kakao_farmer/screens/buy_sell_screen.dart";
 import "package:kakao_farmer/screens/first_screen.dart";
 import "package:kakao_farmer/screens/learning_screen.dart";
 import "package:kakao_farmer/screens/login_screen.dart";
+import "package:kakao_farmer/screens/products_screen.dart";
 import "package:kakao_farmer/screens/profil_screen.dart";
 import "package:kakao_farmer/screens/statistics_screen.dart";
 
@@ -15,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Widget _currentScreen = const Center(child: LearningScreen());
+  Widget _currentScreen = const Center(child: FirstScreen());
 
   void _logoutLogic() {
     Glob.token = null;
@@ -38,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Kakao Farmer'),
         centerTitle: true,
         actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.notifications)),
           IconButton(
               icon: const Icon(Icons.more_vert),
               onPressed: () {
@@ -63,10 +65,34 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'assets/avatar.png'), // Replace with your avatar image
                           ),
                           const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          Column(
                             children: [
-                              IconButton(
+                              TextButton.icon(
+                                icon: Icon(Icons.edit,
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
+                                label: Text(
+                                  'Modifier',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                onPressed: () {
+                                  _updateScreen(const ProfilScreen());
+                                },
+                              ),
+                              TextButton.icon(
+                                icon: Icon(Icons.logout,
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
+                                label: Text(
+                                  'Déconnexion',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                onPressed: () {
+                                  _logoutLogic();
+                                },
+                              ),
+
+                              /*IconButton(
                                 icon: Icon(Icons.edit),
                                 color: Theme.of(context).colorScheme.secondary,
                                 tooltip: 'Modifier le Profil',
@@ -81,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () {
                                   _logoutLogic();
                                 },
-                              ),
+                              ),*/
                             ],
                           ),
                         ],
@@ -128,6 +154,13 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text('Formation'),
               onTap: () {
                 _updateScreen(const LearningScreen());
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.production_quantity_limits),
+              title: Text('Produits'),
+              onTap: () {
+                _updateScreen(const ProductsScreen());
               },
             ),
             ListTile(

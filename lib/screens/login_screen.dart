@@ -23,7 +23,10 @@ class _LoginScreenState extends State<LoginScreen> {
   late Box mainCache;
 
   // Form variables
-  String email = "", password = "";
+  String identifier = "", password = "";
+
+  // Error message
+  String errorMsg = "";
 
   // For spinner management
   bool _isloading = false;
@@ -37,23 +40,28 @@ class _LoginScreenState extends State<LoginScreen> {
     mainCache = Hive.box(Glob.mainCache);
   }
 
-  // Implement logic for login with email and password
-  Future<void> _loginLogic(String emailDt, String passwordDt) async {
+  // Implement logic for login with identifier (username/email) and password
+  Future<void> _loginLogic(String identifierDt, String passwordDt) async {
     try {
-      final response = await http.post(Uri.parse("$apiHead/auth/login"),
+      final response = await http.post(Uri.parse("$apiHead/users/login"),
           headers: <String, String>{
             "Content-type": "application/json;charset=utf-8"
           },
-          body: jsonEncode(
-              <String, String>{"email": emailDt, "password": passwordDt}));
+          body: jsonEncode(<String, String>{
+            "identifier": identifierDt,
+            "password": passwordDt
+          }));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        Glob.token = data["token"];
-        Glob.user = data["user"];
+        print(data["detail"]);
+        Glob.token = data["access_token"];
+        Glob.userId = data["user_id"];
+        Glob.userStatus = data["user_status"];
 
-        mainCache.put("token", data["token"]);
-        mainCache.put("user", data["user"]);
+        mainCache.put("token", data["access_token"]);
+        mainCache.put("user_id", data["user_id"]);
+        mainCache.put("user_status", data["user_status"]);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Connexion réussie")),
@@ -137,25 +145,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       TextFormField(
                         decoration: InputDecoration(
-                          labelText: 'Email',
+                          labelText: 'Email ou nom d\'utilisateur',
                           labelStyle: TextStyle(color: Colors.grey),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey),
                           ),
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(
-                            Icons.email,
+                            Icons.key,
                             color: Colors.grey,
                           ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return "Entrez votre adresse email";
+                            return "Entrez votre email ou nom d'utilisateur";
                           }
                           return null;
                         },
                         onSaved: (value) {
-                          email = value!;
+                          identifier = value!;
                         },
                       ),
                       const SizedBox(
@@ -196,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               setState(() {
                                 _isloading = true;
                               });
-                              _loginLogic(email, password);
+                              _loginLogic(identifier, password);
                             }
                           },
                           style: ElevatedButton.styleFrom(
