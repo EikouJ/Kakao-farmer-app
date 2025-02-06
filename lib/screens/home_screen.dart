@@ -1,6 +1,8 @@
 import "package:flutter/material.dart";
+import "package:hive_flutter/hive_flutter.dart";
 import "package:kakao_farmer/glob.dart";
 import "package:kakao_farmer/screens/buy_sell_screen.dart";
+import "package:kakao_farmer/screens/orders_screen.dart";
 import "package:kakao_farmer/screens/first_screen.dart";
 import "package:kakao_farmer/screens/learning_screen.dart";
 import "package:kakao_farmer/screens/login_screen.dart";
@@ -18,9 +20,31 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Widget _currentScreen = const Center(child: FirstScreen());
 
+  // Pour Hive
+  late Box mainCache;
+
+  // Initialiser l'état
+  @override
+  void initState() {
+    super.initState();
+    mainCache = Hive.box(Glob.mainCache);
+
+    // Récupérer le token et l'utilisateur depuis le cache
+    Glob.token = mainCache.get("token");
+    Glob.userId = mainCache.get("user_id");
+    Glob.userStatus = mainCache.get("user_status");
+  }
+
   void _logoutLogic() {
     Glob.token = null;
-    Glob.user = null;
+    Glob.userId = null;
+    Glob.userStatus = null;
+
+    // Supprimer le token et l'utilisateur du cache
+    mainCache.delete("token");
+    mainCache.delete("user_id");
+    mainCache.delete("user_status");
+
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
@@ -39,7 +63,37 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Kakao Farmer'),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.notifications)),
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.notifications),
+              ),
+              Positioned(
+                right: 11,
+                top: 11,
+                child: Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  constraints: BoxConstraints(
+                    minWidth: 12,
+                    minHeight: 12,
+                  ),
+                  child: Text(
+                    '3', // Replace with the actual number of notifications
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
           IconButton(
               icon: const Icon(Icons.more_vert),
               onPressed: () {
@@ -68,6 +122,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           Column(
                             children: [
                               TextButton.icon(
+                                icon: Icon(Icons.shopping_cart,
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
+                                label: Text(
+                                  'Commandes',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                onPressed: () {
+                                  _updateScreen(const OrdersScreen());
+                                },
+                              ),
+                              TextButton.icon(
                                 icon: Icon(Icons.edit,
                                     color:
                                         Theme.of(context).colorScheme.primary),
@@ -88,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(color: Colors.black),
                                 ),
                                 onPressed: () {
-                                  _logoutLogic();
+                                  _showLogoutConfirmation(context);
                                 },
                               ),
 
@@ -174,26 +240,33 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: _currentScreen,
-      /*bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_sharp),
-            label: 'Scanner',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Accueil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.graphic_eq),
-            label: 'Statistiques',
-          ),
-        ],
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 1, // "Accueil" est sélectionné par défaut
-        backgroundColor: Colors.white,
-      ),*/
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmer'),
+          content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+                _logoutLogic(); // Exécuter la déconnexion
+              },
+              child: const Text('Déconnexion'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -6,6 +6,7 @@ import "package:http/http.dart" as http;
 import 'package:kakao_farmer/glob.dart';
 import 'package:kakao_farmer/models/post.dart';
 import 'package:kakao_farmer/models/product.dart';
+import 'package:kakao_farmer/screens/first_screen_tabs/screens/list_own_posts_screen.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -275,7 +276,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => CreatePostScreen()));
+              MaterialPageRoute(builder: (context) => ListOwnPostsScreen()));
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(Icons.list_alt),

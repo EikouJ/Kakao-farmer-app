@@ -66,7 +66,7 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
 
   Future<void> _fetchPage(int pageKey) async {
     try {
-      print("\n\n\n 4.1 - LIST");
+      print("\n\n\n 4.1 - LIST ${Glob.userStatus}");
       final newItems =
           allPosts.skip(pageKey * _pageSize).take(_pageSize).toList();
       final isLastPage = newItems.length < _pageSize;

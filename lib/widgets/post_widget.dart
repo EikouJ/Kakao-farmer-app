@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_farmer/models/post.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:kakao_farmer/models/product.dart';
+import 'package:kakao_farmer/screens/create_order_screen.dart';
 
 class PostWidget extends StatelessWidget {
   final String? image;
@@ -37,11 +40,66 @@ class PostWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                //Image.network(post.link!),
                 Text(
-                  post.description!,
-                  style: TextStyle(fontSize: 16),
+                  post.product!.name!,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  textAlign: TextAlign.left,
+                ),
+                if (post.description!.length > 100)
+                  Column(
+                    children: [
+                      Text(
+                        '${post.description!.substring(0, 100)}...',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              content: Text(post.description!),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: Text('Read more'),
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    post.description!,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                FutureBuilder(
+                  future: Connectivity().checkConnectivity(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else if (snapshot.hasData &&
+                        snapshot.data != ConnectivityResult.none) {
+                      return Image.network(post.link!);
+                    } else {
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: Text(
+                            'No data',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 )
               ],
             ),
@@ -67,17 +125,22 @@ class PostWidget extends StatelessWidget {
                 },
               ),*/
               TextButton.icon(
-                icon: Icon(Icons.share,
-                    color: Theme.of(context).colorScheme.primary),
-                label: Text('Share'),
-                onPressed: () {
-                  // Action pour partager
-                },
-              ),
-              TextButton.icon(
                 icon: Icon(Icons.shopping_cart,
                     color: Theme.of(context).colorScheme.primary),
                 label: Text('Commander'),
+                onPressed: () {
+                  //_showOrderConfirmation(context);
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              CreateOrderScreen(product: post.product)));
+                },
+              ),
+              TextButton.icon(
+                icon: Icon(Icons.share,
+                    color: Theme.of(context).colorScheme.primary),
+                label: Text('Share'),
                 onPressed: () {
                   // Action pour partager
                 },
@@ -87,6 +150,37 @@ class PostWidget extends StatelessWidget {
           Divider(indent: 10, endIndent: 10, color: Colors.grey),
         ],
       ),
+    );
+  }
+
+  void _showOrderConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmation'),
+          content: const Text('Commander cet article ?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: const Text('Non'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            CreateOrderScreen(product: post.product)));
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: const Text('Oui'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

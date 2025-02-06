@@ -1,6 +1,6 @@
 class Glob {
   static String? token;
-  static dynamic user;
+  //static dynamic user;
 
   static int? userId;
   static String? userStatus;

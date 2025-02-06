@@ -63,12 +63,9 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: const Text(
-        "products",
-        style: TextStyle(color: Colors.white),
-      )),
       body: Center(
+          child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -76,12 +73,20 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               const SizedBox(
-                height: 30,
+                height: 20,
               ),
               Text(
-                "Gestion des produits",
+                "Vente de Cacao",
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.primary, fontSize: 25),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                "Ajouter une gamme pour la vente",
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary, fontSize: 20),
               ),
               const SizedBox(
                 height: 20,
@@ -216,11 +221,11 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
                   style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Theme.of(context).primaryColor),
-                  child: const Text("Ajouter un produit")),
+                  child: const Text("Ajouter")),
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }
