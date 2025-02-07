@@ -229,13 +229,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 _updateScreen(const ProductsScreen());
               },
             ),
-            ListTile(
+            /*ListTile(
               leading: Icon(Icons.sell),
               title: Text('Achats - Ventes'),
               onTap: () {
                 _updateScreen(const BuySellScreen());
               },
-            ),
+            ),*/
           ],
         ),
       ),

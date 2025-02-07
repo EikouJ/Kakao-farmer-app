@@ -34,7 +34,7 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
   // Creer un produit
   Future<http.Response> _createProduct(Product product) async {
     final token = Glob.token;
-    final response = await http.post(Uri.parse("$apiHead/products"),
+    final response = await http.post(Uri.parse("$apiHead/products/"),
         headers: <String, String>{
           "Content-type": "application/json;charset=UTF-8",
           'Authorization': "Bearer $token"
@@ -84,7 +84,7 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
                 height: 10,
               ),
               Text(
-                "Ajouter une gamme pour la vente",
+                "Ajouter un stock de produits a vendre",
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.primary, fontSize: 20),
               ),
