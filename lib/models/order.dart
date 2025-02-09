@@ -7,7 +7,7 @@ class Order {
   User? user;
   final int? quantity;
   final double? totalPrice;
-  final String? date;
+  final String? createdAt;
   final String? status;
 
   Order(
@@ -16,7 +16,7 @@ class Order {
       this.user,
       this.quantity,
       this.totalPrice,
-      this.date,
+      this.createdAt,
       this.status});
 
   Map<String, dynamic> toJson() {
@@ -26,7 +26,7 @@ class Order {
       'user': user?.toJson(),
       'quantity': quantity,
       'total_price': totalPrice,
-      'date': date,
+      'created_at': createdAt,
       'status': status
     };
   }
@@ -36,7 +36,7 @@ class Order {
         id: json['id'],
         quantity: json['quantity'],
         totalPrice: json['total_price'],
-        date: json['date'],
+        createdAt: json['created_at'],
         status: json['status']);
   }
 }

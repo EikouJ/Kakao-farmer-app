@@ -1,7 +1,10 @@
+import "dart:convert";
+
 import "package:flutter/material.dart";
 import "package:hive_flutter/hive_flutter.dart";
 import "package:kakao_farmer/glob.dart";
 import "package:kakao_farmer/screens/buy_sell_screen.dart";
+import "package:kakao_farmer/screens/notifications_screen.dart";
 import "package:kakao_farmer/screens/orders_screen.dart";
 import "package:kakao_farmer/screens/first_screen.dart";
 import "package:kakao_farmer/screens/learning_screen.dart";
@@ -9,6 +12,10 @@ import "package:kakao_farmer/screens/login_screen.dart";
 import "package:kakao_farmer/screens/products_screen.dart";
 import "package:kakao_farmer/screens/profil_screen.dart";
 import "package:kakao_farmer/screens/statistics_screen.dart";
+import "package:web_socket_channel/io.dart";
+import "package:web_socket_channel/web_socket_channel.dart";
+import "package:http/http.dart" as http;
+import "package:kakao_farmer/models/notification.dart" as ModelNotification;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,8 +27,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Widget _currentScreen = const Center(child: FirstScreen());
 
+  // Importer la route principale globale pour l'API
+  final String apiHead = Glob.apiHead;
+
   // Pour Hive
   late Box mainCache;
+
+  WebSocketChannel? channel;
+
+  int unreadNotifications = 0;
 
   // Initialiser l'état
   @override
@@ -29,10 +43,27 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     mainCache = Hive.box(Glob.mainCache);
 
+    Glob.channel = IOWebSocketChannel.connect(Glob.wsUrl);
+    channel = Glob.channel;
+
     // Récupérer le token et l'utilisateur depuis le cache
     Glob.token = mainCache.get("token");
     Glob.userId = mainCache.get("user_id");
     Glob.userStatus = mainCache.get("user_status");
+
+    // Websocket authentication
+    channel!.sink.add(jsonEncode({
+      "type": "authenticate",
+      "userId": Glob.userId,
+      "status": Glob.userStatus
+    }));
+
+    channel!.stream.listen((message) {
+      print("Main Notification received");
+      _setUnreadNotificationsNb();
+    });
+
+    _setUnreadNotificationsNb();
   }
 
   void _logoutLogic() {
@@ -49,12 +80,42 @@ class _HomeScreenState extends State<HomeScreen> {
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
 
+  void _setUnreadNotificationsNb() async {
+    final token = Glob.token;
+
+    final response = await http.get(Uri.parse("$apiHead/notifications/"),
+        headers: <String, String>{'Authorization': "Bearer $token"});
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> notifs = body
+          .where((notification) => notification["read_at"] == null)
+          .toList();
+      /*List<dynamic> notifs = body
+          .where((notification) => notification["read_at"] == null)
+          .toList();*/
+
+      setState(() {
+        unreadNotifications = notifs.length;
+      });
+    } else {
+      throw Exception(
+          'Failed to load notifications ${response.statusCode} : ${response.body}');
+    }
+  }
+
   void _updateScreen(Widget screen) {
     setState(() {
       _currentScreen = screen;
     });
     Navigator.pop(context); // Close the drawer
   }
+
+  /*@override
+  void dispose() {
+    channel!.sink.close();
+    super.dispose();
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +127,18 @@ class _HomeScreenState extends State<HomeScreen> {
           Stack(
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  //_updateScreen(const NotificationsScreen());
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsScreen(),
+                    ),
+                  ).then((value) {
+                    if (value != null) {}
+                    _setUnreadNotificationsNb();
+                  });
+                },
                 icon: Icon(Icons.notifications),
               ),
               Positioned(
@@ -83,7 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     minHeight: 12,
                   ),
                   child: Text(
-                    '3', // Replace with the actual number of notifications
+                    unreadNotifications
+                        .toString(), // Replace with the actual number of notifications
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 8,
@@ -121,6 +194,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 10),
                           Column(
                             children: [
+                              //_updateScreen(const ModelNotificationsScreen());
+                              /*Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ModelNotificationsScreen()));*/
+                              /*TextButton.icon(
+                                icon: Icon(Icons.notifications,
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
+                                label: Text(
+                                  'ModelNotifications',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ModelNotificationsScreen()));
+                                },
+                              ),*/
                               TextButton.icon(
                                 icon: Icon(Icons.shopping_cart,
                                     color:

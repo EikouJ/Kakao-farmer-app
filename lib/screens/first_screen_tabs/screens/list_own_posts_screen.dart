@@ -157,7 +157,7 @@ class _ListOwnPostsScreenState extends State<ListOwnPostsScreen> {
             TextButton(
               onPressed: () {
                 _deletePost(id).then((_) {
-                  _showDialogMsg(context, "Poste supprimé avec succès");
+                  //_showDialogMsg(context, "Poste supprimé avec succès");
                 });
                 //_deletePost(id); // ESupprimer le post
                 Navigator.of(context).pop(); // Fermer la boîte de dialogue

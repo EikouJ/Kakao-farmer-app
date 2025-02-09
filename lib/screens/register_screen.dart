@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
-      } else if (response.statusCode == 409) {
+      } else if (response.statusCode == 400) {
         /*ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text(
@@ -65,8 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );*/
 
         setState(() {
-          errorMsg =
-              "Un utilisateur avec la même adresse email ou le même nom d'utilisateur existe déjà";
+          errorMsg = "Adresse Email ou nom d'utilisateur déjà utilisé";
         });
       } else {
         print(response.body);

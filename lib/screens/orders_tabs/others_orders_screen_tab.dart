@@ -6,7 +6,9 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:kakao_farmer/glob.dart';
 import 'package:kakao_farmer/models/order.dart';
 import "package:http/http.dart" as http;
+import 'package:kakao_farmer/models/user.dart';
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class OthersOrdersScreenTab extends StatefulWidget {
   const OthersOrdersScreenTab({super.key});
@@ -29,11 +31,15 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
 
   late Future<List<Order>> _futureOrdersDatas;
 
+  WebSocketChannel? channel;
+
   // Initialisation
   @override
   void initState() {
     super.initState();
     mainCache = Hive.box(Glob.mainCache);
+
+    channel = Glob.channel;
 
     _pagingController.addPageRequestListener((pageKey) {
       _fetchAllOrders().then((_) {
@@ -67,6 +73,28 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
     }
   }
 
+  Future<User> _fetchUser(int id) async {
+    final token = Glob.token;
+    final response = await http.get(
+      Uri.parse("$apiHead/users/$id"),
+      headers: <String, String>{'Authorization': "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      dynamic body = jsonDecode(response.body);
+
+      if (body is! Map<String, dynamic>) {
+        throw Exception('Failed to fetch user: Invalid response format');
+      }
+
+      User user = User.fromJson(body);
+
+      return user;
+    } else {
+      throw Exception('Failed to load user');
+    }
+  }
+
   Future<List<Order>> _fetchOrders() async {
     final token = Glob.token;
     final response = await http.get(
@@ -77,7 +105,9 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
       List<Order> orders = await Future.wait(body.map((dynamic item) async {
+        User user = await _fetchUser(item["user_id"]);
         Order order = Order.fromJson(item);
+        order.user = user;
         return order;
       }).toList());
 
@@ -87,15 +117,52 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
     }
   }
 
+  Future<http.Response> _createNotification(
+      int userId, String title, String content) async {
+    final token = Glob.token;
+    //final userId = Glob.userId;
+
+    final response = await http.post(Uri.parse("$apiHead/notifications/"),
+        headers: <String, String>{
+          "Content-type": "application/json;charset=UTF-8",
+          'Authorization': "Bearer $token"
+        },
+        body: jsonEncode(<String, dynamic>{
+          "user_id": userId,
+          "title": title,
+          "content": content
+        }));
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      channel!.sink.add(jsonEncode({
+        "type": "send_notification",
+        "targetId": userId,
+        "title": title,
+        "content": content
+      }));
+
+      return response;
+    } else {
+      print("Impossible d'envoyer la notification");
+      print(response.statusCode);
+      print(response.body);
+      return response;
+    }
+  }
+
   @override
   void dispose() {
     _pagingController.dispose();
     super.dispose();
   }
 
+  String addZeroBefore(int data) {
+    return "${data < 10 ? "0$data" : data}";
+  }
+
   String formatDate(String date) {
     DateTime dateTime = DateTime.parse(date);
-    return '${dateTime.day < 10 ? "0${dateTime.day}" : dateTime.day}-${dateTime.month < 10 ? "0${dateTime.month}" : dateTime.month}-${dateTime.year}  ${dateTime.hour}:${dateTime.minute}';
+    return '${addZeroBefore(dateTime.day)}-${addZeroBefore(dateTime.month)}-${dateTime.year}  ${addZeroBefore(dateTime.hour)}:${addZeroBefore(dateTime.minute)}';
   }
 
   @override
@@ -129,7 +196,7 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 8),
-                        Text('Date: ${formatDate(order.date!)}'),
+                        Text('Date: ${formatDate(order.createdAt!)}'),
                         SizedBox(height: 8),
                         Text('Total: ${order.totalPrice} FCFA'),
                         SizedBox(height: 8),
@@ -175,7 +242,8 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
                             if (order.status == "pending") ...[
                               FilledButton(
                                   onPressed: () async {
-                                    _validatedOrder(order.id!).then((_) {
+                                    _validatedOrder(order.id!, order.user!.id!)
+                                        .then((_) {
                                       setState(() {
                                         _fetchAllOrders();
                                         _pagingController.refresh();
@@ -212,12 +280,12 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
                               FilledButton(
                                   onPressed: () async {
                                     await _showCancelConfirmation(
-                                            context, order.id!)
+                                            context, order.id!, order.user!.id!)
                                         .then((confirmed) {
                                       if (confirmed) {
                                         setState(() {
-                                          _fetchAllOrders();
-                                          _pagingController.refresh();
+                                          _fetchAllOrders().then((_) =>
+                                              _pagingController.refresh());
                                         });
                                       }
                                     });
@@ -250,7 +318,7 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
     ));
   }
 
-  Future<void> _validatedOrder(int id) async {
+  Future<void> _validatedOrder(int id, int userId) async {
     final token = Glob.token;
     final response = await http.patch(
       Uri.parse("$apiHead/orders/$id/validate"),
@@ -259,12 +327,14 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       //_showDialogMsg(context, "Ordere supprimé avec succès");
+      await _createNotification(userId, "Commande validée",
+          "Votre commande a été validée par le propriétaire du produits");
     } else {
-      throw Exception('Failed to validate order');
+      throw Exception('Failed to validate order ${response.statusCode}');
     }
   }
 
-  Future<void> _rejectOrder(int id) async {
+  Future<void> _rejectOrder(int id, int userId) async {
     final token = Glob.token;
     final response = await http.patch(
       Uri.parse("$apiHead/orders/$id/reject"),
@@ -273,19 +343,22 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       //_showDialogMsg(context, "Ordere supprimé avec succès");
+      await _createNotification(userId, "Commande rejetée",
+          "Votre commande a été refusée par le propriétaire du produits");
     } else {
       throw Exception('Failed to validate order');
     }
   }
 
-  Future<bool> _showCancelConfirmation(BuildContext context, int id) async {
+  Future<bool> _showCancelConfirmation(
+      BuildContext context, int id, int userId) async {
     bool t = true;
     await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmation'),
-          content: const Text('Voulez-vous vraiment annuler cette commande ?'),
+          content: const Text('Voulez-vous vraiment rejeter cette commande ?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -296,7 +369,7 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
             ),
             TextButton(
               onPressed: () {
-                _rejectOrder(id);
+                _rejectOrder(id, userId);
                 //_deleteOrder(id); // ESupprimer le order
                 t = true;
                 Navigator.of(context).pop(); // Fermer la boîte de dialogue

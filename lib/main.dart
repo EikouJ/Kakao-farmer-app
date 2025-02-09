@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import "package:flutter/material.dart";
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kakao_farmer/glob.dart';
 import 'package:kakao_farmer/screens/main_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   //  Initialisation de Hive
@@ -64,6 +67,15 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(fontSize: 14, color: Colors.black87),
         ),
       ),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('fr', ''), // Français
+        // autres locales...
+      ],
       home: const MainScreen(),
     );
   }

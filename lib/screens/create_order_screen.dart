@@ -9,6 +9,7 @@ import 'package:kakao_farmer/models/post.dart';
 import 'package:kakao_farmer/models/product.dart';
 import 'package:kakao_farmer/models/user.dart';
 import 'package:kakao_farmer/screens/first_screen_tabs/screens/list_own_posts_screen.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class CreateOrderScreen extends StatefulWidget {
   final Product? product;
@@ -30,7 +31,9 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   late Box mainCache;
 
   // Loading
-  bool isLoading = false;
+  bool _isLoading = false;
+
+  WebSocketChannel? channel;
 
   // Variables pour la commande
   Product? product;
@@ -45,6 +48,39 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     super.initState();
 
     mainCache = Hive.box(Glob.mainCache);
+    channel = Glob.channel;
+  }
+
+  Future<http.Response> _sendNotification(
+      int userId, String title, String content) async {
+    final token = Glob.token;
+
+    final response = await http.post(Uri.parse("$apiHead/notifications/"),
+        headers: <String, String>{
+          "Content-type": "application/json;charset=UTF-8",
+          'Authorization': "Bearer $token"
+        },
+        body: jsonEncode(<String, dynamic>{
+          "user_id": userId,
+          "title": title,
+          "content": content
+        }));
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      channel!.sink.add(jsonEncode({
+        "type": "send_notification",
+        "targetId": userId,
+        "title": title,
+        "content": content
+      }));
+
+      return response;
+    } else {
+      print("Impossible d'envoyer la notification");
+      print(response.statusCode);
+      print(response.body);
+      return response;
+    }
   }
 
   // Creer un post
@@ -70,8 +106,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         const SnackBar(content: Text("commande enregistrée avec succès")),
       );
 
+      await _sendNotification(widget.product!.user!.id!, "Nouvelle commande",
+          "Vous avez reçu une nouvelle commande");
+
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
 
       Navigator.pop(context);
@@ -80,6 +119,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       print("Impossible d'enregistrer la commande");
       print(response.statusCode);
       print(response.body);
+
+      setState(() {
+        _isLoading = false;
+      });
       return response;
     }
   }
@@ -87,114 +130,129 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Gestion des commandes",
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-          child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const SizedBox(
-                height: 15,
-              ),
-              Text(
-                "Passer une commande",
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary, fontSize: 25),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Text(
-                widget.product!.name!,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Text(
-                "Prix : ${widget.product!.price!} FCFA",
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Text(
-                "Articles restants : ${widget.product!.stock}",
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Quantité',
-                        labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(
-                          Icons.numbers,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Entrer la quantite";
-                        }
-                        if (int.parse(value) < 0) {
-                          return "Entrer un nombre positif";
-                        }
-                        if (int.parse(value) > widget.product!.stock!) {
-                          return "Nombre d'articles insuffisants";
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        quantity = int.parse(value!);
-                      },
-                    ),
-                  ),
-                  //const SizedBox(width: 10),
-                  //const Text('u', style: TextStyle(fontSize: 16)),
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      setState(() {
-                        isLoading = true;
-                      });
-                      _createOrder(quantity!);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Theme.of(context).primaryColor),
-                  child: const Text("Passer la commande")),
-            ],
+        appBar: AppBar(
+          title: const Text(
+            "Gestion des commandes",
+            style: TextStyle(color: Colors.white),
           ),
+          centerTitle: true,
         ),
-      )),
-    );
+        body: Stack(
+          children: [
+            Center(
+                child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Text(
+                      "Passer une commande",
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 25),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    Text(
+                      widget.product!.name!,
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      "Prix : ${widget.product!.price!} FCFA",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      "Articles restants : ${widget.product!.stock}",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            keyboardType: TextInputType.numberWithOptions(),
+                            decoration: InputDecoration(
+                              labelText: 'Quantité',
+                              labelStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey),
+                              ),
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(
+                                Icons.numbers,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Entrer la quantite";
+                              }
+                              if (int.parse(value) < 0) {
+                                return "Entrer un nombre positif";
+                              }
+                              if (int.parse(value) > widget.product!.stock!) {
+                                return "Nombre d'articles insuffisants";
+                              }
+                              return null;
+                            },
+                            onSaved: (value) {
+                              quantity = int.parse(value!);
+                            },
+                          ),
+                        ),
+                        //const SizedBox(width: 10),
+                        //const Text('u', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            _createOrder(quantity!);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Theme.of(context).primaryColor),
+                        child: const Text("Passer la commande")),
+                  ],
+                ),
+              ),
+            )),
+            if (_isLoading)
+              Container(
+                color: Colors.black54, // Fond semi-transparent
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Color.fromARGB(255, 0, 0, 128),
+                  ), // Spinner
+                ),
+              )
+          ],
+        ));
   }
 }

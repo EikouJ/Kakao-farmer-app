@@ -19,11 +19,20 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
   // Formulaire
   final _formKey = GlobalKey<FormState>();
 
+  // For spinner management
+  bool _isloading = false;
+
   // Variables pour le produit
   String name = "";
   double price = 0;
   String city = "";
   int stock = 0;
+
+  // Controlleurs des zones de texte
+  TextEditingController nameController = TextEditingController(text: "");
+  TextEditingController priceController = TextEditingController(text: "");
+  TextEditingController cityController = TextEditingController(text: "");
+  TextEditingController stockController = TextEditingController(text: "");
 
   // Initialisation
   @override
@@ -46,16 +55,29 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
           "stock": product.stock
         }));
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 201 || response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("produit enregistré avec succès")),
       );
-      Navigator.pop(context);
+
+      setState(() {
+        nameController.clear();
+        priceController.clear();
+        cityController.clear();
+        stockController.clear();
+
+        _isloading = false;
+      });
+
       return response;
     } else {
       print("Impossible d'enregistrer le produit");
       print(response.statusCode);
       print(response.body);
+
+      setState(() {
+        _isloading = false;
+      });
       return response;
     }
   }
@@ -63,169 +85,196 @@ class _CreateProductScreenTabState extends State<CreateProductScreenTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-          child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              const SizedBox(
-                height: 20,
-              ),
-              Text(
-                "Vente de Cacao",
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary, fontSize: 25),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Text(
-                "Ajouter un stock de produits a vendre",
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary, fontSize: 20),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Nom',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(
-                    Icons.text_fields_sharp,
-                    color: Colors.grey,
-                  ),
+        body: Stack(
+      children: [
+        Center(
+            child: SingleChildScrollView(
+                child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                const SizedBox(
+                  height: 20,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Entrer un nom pour votre produit";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  name = value!;
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Prix',
-                        labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(
-                          Icons.attach_money_rounded,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Entrer un prix";
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        price = double.parse(value!);
-                      },
+                Text(
+                  "Vente de Cacao",
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 25),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  "Ajouter un stock de produits a vendre",
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 20),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
+                  controller: nameController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    labelText: 'Nom',
+                    labelStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(
+                      Icons.text_fields_sharp,
+                      color: Colors.grey,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  const Text('FCFA', style: TextStyle(fontSize: 16)),
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Ville',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(
-                    Icons.location_city,
-                    color: Colors.grey,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Entrer une ville";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  city = value!;
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Stock',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(
-                    Icons.inventory,
-                    color: Colors.grey,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Entrer le stock";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  stock = int.parse(value!);
-                },
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      final newProduct = Product(
-                        name: name,
-                        price: price,
-                        city: city,
-                        stock: stock,
-                      );
-
-                      _createProduct(newProduct);
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Entrer un nom pour votre produit";
                     }
+                    return null;
                   },
-                  style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Theme.of(context).primaryColor),
-                  child: const Text("Ajouter")),
-            ],
+                  onSaved: (value) {
+                    name = value!;
+                  },
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: priceController,
+                        keyboardType: TextInputType.numberWithOptions(),
+                        decoration: InputDecoration(
+                          labelText: 'Prix',
+                          labelStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(
+                            Icons.attach_money_rounded,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Entrer un prix";
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          price = double.parse(value!);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text('FCFA', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
+                  keyboardType: TextInputType.text,
+                  controller: cityController,
+                  decoration: InputDecoration(
+                    labelText: 'Ville',
+                    labelStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(
+                      Icons.location_city,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Entrer une ville";
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    city = value!;
+                  },
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
+                  keyboardType: TextInputType.numberWithOptions(),
+                  controller: stockController,
+                  decoration: InputDecoration(
+                    labelText: 'Stock',
+                    labelStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(
+                      Icons.inventory,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Entrer le stock";
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    stock = int.parse(value!);
+                  },
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+
+                        setState(() {
+                          _isloading = true;
+                        });
+
+                        final newProduct = Product(
+                          name: name,
+                          price: price,
+                          city: city,
+                          stock: stock,
+                        );
+
+                        _createProduct(newProduct);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).primaryColor),
+                    child: const Text("Ajouter")),
+              ],
+            ),
           ),
-        ),
-      )),
-    );
+        ))),
+        if (_isloading)
+          Container(
+            color: Colors.black54, // Fond semi-transparent
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: Color.fromARGB(255, 0, 0, 128),
+              ), // Spinner
+            ),
+          )
+      ],
+    ));
   }
 }

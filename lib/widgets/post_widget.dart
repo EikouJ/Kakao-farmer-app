@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:kakao_farmer/models/post.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -60,7 +62,9 @@ class PostWidget extends StatelessWidget {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              content: Text(post.description!),
+                              content: SingleChildScrollView(
+                                child: Text(post.description!),
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
@@ -70,7 +74,7 @@ class PostWidget extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Text('Read more'),
+                        child: Text('Lire plus'),
                       ),
                     ],
                   )
@@ -86,7 +90,13 @@ class PostWidget extends StatelessWidget {
                       return CircularProgressIndicator();
                     } else if (snapshot.hasData &&
                         snapshot.data != ConnectivityResult.none) {
-                      return Image.network(post.link!);
+                      /*return Image.network(
+                        post.link!,
+                        width: double.infinity,
+                        height: 300,
+                        fit: BoxFit.fill,
+                      );*/
+                      return Text("NOTHING");
                     } else {
                       return Container(
                         height: 200,

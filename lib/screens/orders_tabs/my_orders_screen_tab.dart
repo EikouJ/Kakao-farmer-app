@@ -93,9 +93,13 @@ class _OrdersListScreenState extends State<MyOrdersScreenTab> {
     super.dispose();
   }
 
+  String addZeroBefore(int data) {
+    return "${data < 10 ? "0$data" : data}";
+  }
+
   String formatDate(String date) {
     DateTime dateTime = DateTime.parse(date);
-    return '${dateTime.day < 10 ? "0${dateTime.day}" : dateTime.day}-${dateTime.month < 10 ? "0${dateTime.month}" : dateTime.month}-${dateTime.year}  ${dateTime.hour}:${dateTime.minute}';
+    return '${addZeroBefore(dateTime.day)}-${addZeroBefore(dateTime.month)}-${dateTime.year}  ${addZeroBefore(dateTime.hour)}:${addZeroBefore(dateTime.minute)}';
   }
 
   @override
@@ -129,7 +133,7 @@ class _OrdersListScreenState extends State<MyOrdersScreenTab> {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 8),
-                        Text('Date: ${formatDate(order.date!)}'),
+                        Text('Date: ${formatDate(order.createdAt!)}'),
                         SizedBox(height: 8),
                         Text('Quantité: ${order.quantity}'),
                         SizedBox(height: 8),
@@ -190,8 +194,8 @@ class _OrdersListScreenState extends State<MyOrdersScreenTab> {
                                         .then((confirmed) {
                                       if (confirmed) {
                                         setState(() {
-                                          _fetchAllOrders();
-                                          _pagingController.refresh();
+                                          _fetchAllOrders().then((_) =>
+                                              _pagingController.refresh());
                                         });
                                       }
                                     });
