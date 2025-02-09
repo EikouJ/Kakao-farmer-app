@@ -60,7 +60,7 @@ class _ReadingScreenTabState extends State<ReadingScreenTab> {
 
   @override
   Widget build(BuildContext context) {
-    return PostWidget(image: null, description: "Description");
+    return Text("TEXT"); //PostWidget(image: null, description: "Description");
     /*Container(
         padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
         child: PagedListView<int, String>(

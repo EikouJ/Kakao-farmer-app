@@ -1,108 +1,114 @@
 import 'package:flutter/material.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:kakao_farmer/widgets/shadowed_container.dart';
-import 'package:kakao_farmer/widgets/video_player_widget.dart';
+import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 
 class ScannerScreenTab extends StatefulWidget {
+  const ScannerScreenTab({super.key});
+
   @override
   _ScannerScreenTabState createState() => _ScannerScreenTabState();
 }
 
 class _ScannerScreenTabState extends State<ScannerScreenTab> {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-        child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.error_outline,
-          color: Colors.grey,
-          size: 80,
-        ),
-        const SizedBox(
-          height: 15,
-        ),
-        Text(
-          'Vue de camera',
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.w700, color: Colors.grey),
-        )
-      ],
-    ));
-  }
-  /*static const _pageSize = 5;
-  final PagingController<int, String> _pagingController =
-      PagingController(firstPageKey: 0);
+  late CameraController _controller = CameraController(
+    CameraDescription(
+      name: 'default',
+      lensDirection: CameraLensDirection.back,
+      sensorOrientation: 0,
+    ),
+    ResolutionPreset.max,
+  );
 
-  final List<String> videoIds = [
-    'dQw4w9WgXcQ',
-    '3JZ_D3ELwOQ',
-    'tgbNymZ7vqY',
-    'L_jWHffIx5E',
-    '9bZkp7q19f0',
-    'e-ORhEE9VVg',
-    'nVjsGKrE6E8',
-    'Pkh8UtuejGw',
-    'JGwWNGJdvx8',
-    'kJQP7kiw5Fk'
-  ];
+  late Future<void> _initializeControllerFuture = _controller.initialize();
 
+  /*late CameraController _controller;
+
+  late Future<void> _initializeControllerFuture;*/
+
+  /*@override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }*/
   @override
   void initState() {
     super.initState();
-    _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey);
-    });
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+    _initializeCamera();
   }
 
-  Future<void> _fetchPage(int pageKey) async {
-    try {
-      final newItems =
-          videoIds.skip(pageKey * _pageSize).take(_pageSize).toList();
-      final isLastPage = newItems.length < _pageSize;
-      if (isLastPage) {
-        _pagingController.appendLastPage(newItems);
-      } else {
-        final nextPageKey = pageKey + 1;
-        _pagingController.appendPage(newItems, nextPageKey);
-      }
-    } catch (error) {
-      _pagingController.error = error;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_controller.value.isInitialized) {
+      _initializeCamera();
+    }
+  }
+
+  Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+
+    _controller = CameraController(
+      firstCamera,
+      ResolutionPreset.max, // Set to the highest resolution available
+    );
+
+    _initializeControllerFuture = _controller.initialize();
+
+    //await _controller.lockCaptureOrientation(DeviceOrientation.portraitUp);
+    if (mounted) {
+      setState(() {});
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-        padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
-        child: PagedListView<int, String>(
-          pagingController: _pagingController,
-          builderDelegate: PagedChildBuilderDelegate<String>(
-            itemBuilder: (context, videoId, index) => ShadowedContainer(
-              margin: EdgeInsets.all(4),
-              padding: EdgeInsets.all(4),
-              content: Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      VideoPlayerWidget(videoId: videoId),
-                      const SizedBox(height: 10),
-                      Text('Video $videoId',
-                          style: Theme.of(context).textTheme.titleMedium),
-                    ],
-                  )),
-            ),
-          ),
-        ));
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
-  void dispose() {
-    _pagingController.dispose();
-    super.dispose();
-  }*/
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Center(
+              child: Transform.rotate(
+                  angle: 90 * 3.1415927 / 180, // Rotate 90 degrees
+                  child: Transform.scale(
+                    scale: 1 * _controller.value.aspectRatio,
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: CameraPreview(_controller),
+                      ),
+                    ),
+                  )),
+            );
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          try {
+            await _initializeControllerFuture;
+            final image = await _controller.takePicture();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Image capturée: ${image.path}')),
+            );
+          } catch (e) {
+            print(e);
+          }
+        },
+        child: Icon(Icons.camera),
+      ),
+    );
+  }
 }

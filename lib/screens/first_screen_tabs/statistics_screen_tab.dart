@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:kakao_farmer/screens/learn_tabs/screens/create_post_screen.dart';
+import 'package:kakao_farmer/glob.dart';
+import 'package:kakao_farmer/models/order.dart';
+import 'package:kakao_farmer/models/product.dart';
+import 'package:kakao_farmer/models/user.dart';
+import "package:http/http.dart" as http;
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
 
 class StatisticsScreenTab extends StatefulWidget {
@@ -11,157 +16,165 @@ class StatisticsScreenTab extends StatefulWidget {
 }
 
 class _StatisticsScreenTabState extends State<StatisticsScreenTab> {
-  static const _pageSize = 5;
-  final PagingController<int, String> _pagingController =
-      PagingController(firstPageKey: 0);
+  // Importer la route principale globale pour l'API
+  final String apiHead = Glob.apiHead;
 
-  final List<String> articles = [
-    /*'Article Content 1',
-    'Article Content 2',
-    'Article Content 3',
-    'Article Content 4',
-    'Article Content 5',
-    'Article Content 6',
-    'Article Content 7',
-    'Article Content 8',
-    'Article Content 9',
-    'Article Content 10'*/
-  ];
+  late Future<List<Order>> _futureOrdersDatas = _fetchOrders();
 
   @override
   void initState() {
     super.initState();
-    _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey);
-    });
+
+    _futureOrdersDatas = _fetchOrders();
   }
 
-  Future<void> _fetchPage(int pageKey) async {
-    try {
-      final newItems =
-          articles.skip(pageKey * _pageSize).take(_pageSize).toList();
-      final isLastPage = newItems.length < _pageSize;
-      if (isLastPage) {
-        _pagingController.appendLastPage(newItems);
-      } else {
-        final nextPageKey = pageKey + 1;
-        _pagingController.appendPage(newItems, nextPageKey);
+  Future<User> _fetchUser(int id) async {
+    final token = Glob.token;
+    final response = await http.get(
+      Uri.parse("$apiHead/users/$id"),
+      headers: <String, String>{'Authorization': "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      dynamic body = jsonDecode(response.body);
+
+      if (body is! Map<String, dynamic>) {
+        throw Exception('Failed to load product: Invalid response format');
       }
-    } catch (error) {
-      _pagingController.error = error;
+
+      User user = User.fromJson(body);
+
+      return user;
+    } else {
+      throw Exception('Failed to load user');
     }
   }
 
-  @override
-  void dispose() {
-    _pagingController.dispose();
-    super.dispose();
+  Future<Product> _fetchProduct(int id) async {
+    final token = Glob.token;
+    final response = await http.get(
+      Uri.parse("$apiHead/products/$id"),
+      headers: <String, String>{'Authorization': "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      dynamic body = jsonDecode(response.body);
+      //print(body.runtimeType);
+      if (body is! Map<String, dynamic>) {
+        throw Exception('Failed to load product: Invalid response format');
+      }
+
+      Product product = Product.fromJson(body);
+
+      product.user = await _fetchUser(body["seller_id"]);
+
+      return product;
+    } else {
+      throw Exception('Failed to load product ${response.statusCode}');
+    }
+  }
+
+  Future<List<Order>> _fetchOrders() async {
+    final token = Glob.token;
+    final response = await http.get(
+      Uri.parse("$apiHead/orders/all"),
+      headers: <String, String>{'Authorization': "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      List<Order> orders = await Future.wait(body.map((dynamic item) async {
+        Product product = await _fetchProduct(item["product_id"]);
+        Order order = Order.fromJson(item);
+        order.product = product;
+        return order;
+      }).toList());
+
+      return orders;
+    } else {
+      throw Exception('Failed to load orders');
+    }
+  }
+
+  int _calculateTotalSales(List<Order> orders) {
+    return orders.length;
+  }
+
+  double _calculateTotalRevenue(List<Order> orders) {
+    double totalRevenue = 0.0;
+    for (var order in orders) {
+      totalRevenue += order.totalPrice!;
+    }
+    return totalRevenue;
+  }
+
+  int _calculateUserSales(List<Order> orders) {
+    return orders
+        .where((order) =>
+            order.product!.user!.id! == Glob.userId &&
+            order.status == "validated")
+        .length;
+  }
+
+  int _calculateUserBuys(List<Order> orders) {
+    return orders
+        .where((order) =>
+            order.user!.id == Glob.userId && order.status == "validated")
+        .length;
   }
 
   @override
   Widget build(BuildContext context) {
+    //return Scaffold(body: LineChartWidget(isShowingMainData: true));
     return Scaffold(
-      body: Container(
-          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
-          child: PagedListView<int, String>(
-            pagingController: _pagingController,
-            builderDelegate: PagedChildBuilderDelegate<String>(
-              noItemsFoundIndicatorBuilder: (context) => Center(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.grey,
-                    size: 80,
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Text(
-                    'Aucun Post trouvé',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey),
-                  )
-                ],
-              )),
-              itemBuilder: (context, article, index) => ShadowedContainer(
-                margin: EdgeInsets.all(4),
-                padding: EdgeInsets.all(4),
-                content: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('Title $index',
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontSize: 24)),
-                        const SizedBox(height: 10),
-                        Text(
-                          article,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            FilledButton(
-                                onPressed: () {},
-                                style: FilledButton.styleFrom(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .secondary
-                                        .withAlpha(30),
-                                    overlayColor: Theme.of(context)
-                                        .colorScheme
-                                        .secondary
-                                        .withAlpha(120),
-                                    foregroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .secondary),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.menu_book_sharp),
-                                    const SizedBox(
-                                      width: 7,
-                                    ),
-                                    Text("Lire")
-                                  ],
-                                ))
-                          ],
-                        ),
-                      ],
-                    )),
-              ),
-            ),
-          )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const CreatePostScreen()));
+      body: FutureBuilder<List<Order>>(
+        future: _futureOrdersDatas,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No data available'));
+          } else {
+            List<Order> orders = snapshot.data!;
+            int totalSales = _calculateTotalSales(orders);
+            double totalRevenue = _calculateTotalRevenue(orders);
+            int userSales = _calculateUserSales(orders);
+            int userBuys = _calculateUserBuys(orders);
+
+            return ListView(
+              padding: EdgeInsets.all(16.0),
+              children: [
+                _buildShadowedContainer('Total Sales: $totalSales'),
+                _buildShadowedContainer(
+                    'Total Revenue: \$${totalRevenue.toStringAsFixed(2)}'),
+                _buildShadowedContainer('Your Sales: $userSales'),
+                _buildShadowedContainer('Your Buys: $userBuys'),
+              ],
+            );
+          }
         },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        child: Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
       ),
     );
   }
-}
 
-            /*FloatingActionButton(
-              onPressed: () {},
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-            )*/
+  Widget _buildShadowedContainer(String text) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Text(text),
+    );
+  }
+}

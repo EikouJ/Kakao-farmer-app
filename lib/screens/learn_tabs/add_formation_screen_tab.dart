@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:kakao_farmer/screens/learn_tabs/screens/create_post_screen.dart';
+import 'package:kakao_farmer/screens/learn_tabs/screens/create_formation_screen.dart';
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
 
 class AddFormationScreenTab extends StatefulWidget {
@@ -145,7 +145,7 @@ class _AddFormationScreenTabState extends State<AddFormationScreenTab> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const CreatePostScreen()));
+                  builder: (context) => const CreateFormationScreen()));
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: Icon(

@@ -32,12 +32,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   bool _isLoggedIn() {
-    return _readValue("token") != null && _readValue("user") != null;
+    return _readValue("token") != null && _readValue("user_id") != null;
   }
 
   @override
   Widget build(BuildContext context) {
-    //return _isLoggedIn() ? const HomeScreen() : const LoginScreen();
-    return HomeScreen();
+    Glob.token = _readValue("token");
+    Glob.userId = _readValue("user_id");
+    Glob.userStatus = _readValue("user_status");
+
+    return _isLoggedIn() ? const HomeScreen() : const LoginScreen();
+    //return HomeScreen();
   }
 }
