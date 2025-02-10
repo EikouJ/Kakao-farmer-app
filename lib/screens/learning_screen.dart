@@ -43,7 +43,7 @@ class _LearningScreenState extends State<LearningScreen> {
               tabs: [
                 Tab(icon: Icon(Icons.video_collection_outlined), text: "Video"),
                 Tab(icon: Icon(Icons.menu_book_outlined), text: "Lecture"),
-                Tab(icon: Icon(Icons.post_add), text: "Poster"),
+                Tab(icon: Icon(Icons.post_add), text: "Créer"),
               ],
             ),
           )

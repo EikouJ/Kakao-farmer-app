@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
     Glob.userId = _readValue("user_id");
     Glob.userStatus = _readValue("user_status");
 
-    return _isLoggedIn() ? const HomeScreen() : const LoginScreen();
+    return _isLoggedIn() ? const HomeScreen() : const HomeScreen();
     //return HomeScreen();
   }
 }
