@@ -75,7 +75,8 @@ class _ListProductsScreenTabState extends State<ListProductsScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+      //jsonDecode(response.body);
       List<Product> products = await Future.wait(body.map((dynamic item) async {
         Product product = Product.fromJson(item);
         return product;
@@ -99,18 +100,25 @@ class _ListProductsScreenTabState extends State<ListProductsScreenTab> {
       body: PagedListView<int, Product>(
         pagingController: _pagingController,
         builderDelegate: PagedChildBuilderDelegate<Product>(
-            itemBuilder: (context, product, index) => OwnProductWidget(
-                  product: product,
-                  onDelete: () => {
-                    _showDeleteConfirmation(context, product.id!).then((_) {
-                      setState(() {
-                        _fetchAllProducts();
-                        _pagingController.refresh();
-                      });
-                    })
-                  },
-                  onEdit: () => _editProduct(context, product),
-                )),
+          itemBuilder: (context, product, index) => OwnProductWidget(
+            product: product,
+            onDelete: () => {
+              _showDeleteConfirmation(context, product.id!).then((_) {
+                setState(() {
+                  _fetchAllProducts();
+                  _pagingController.refresh();
+                });
+              })
+            },
+            onEdit: () => _editProduct(context, product),
+          ),
+          noItemsFoundIndicatorBuilder: (context) => Center(
+            child: Text(
+              'Vous n\'avez enregistrer aucun produit',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+          ),
+        ),
       ),
     );
   }

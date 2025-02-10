@@ -4,11 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import "package:http/http.dart" as http;
 import 'package:kakao_farmer/glob.dart';
-import 'package:kakao_farmer/models/order.dart';
-import 'package:kakao_farmer/models/post.dart';
 import 'package:kakao_farmer/models/product.dart';
 import 'package:kakao_farmer/models/user.dart';
-import 'package:kakao_farmer/screens/first_screen_tabs/screens/list_own_posts_screen.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class CreateOrderScreen extends StatefulWidget {

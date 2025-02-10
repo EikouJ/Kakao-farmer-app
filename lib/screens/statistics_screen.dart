@@ -26,7 +26,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
 
     if (response.statusCode == 200) {
-      dynamic body = jsonDecode(response.body);
+      dynamic body = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (body is! Map<String, dynamic>) {
         throw Exception('Failed to load product: Invalid response format');
@@ -48,7 +48,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
 
     if (response.statusCode == 200) {
-      dynamic body = jsonDecode(response.body);
+      dynamic body = jsonDecode(utf8.decode(response.bodyBytes));
       //print(body.runtimeType);
       if (body is! Map<String, dynamic>) {
         throw Exception('Failed to load product: Invalid response format');
@@ -72,7 +72,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
       List<Order> orders = await Future.wait(body.map((dynamic item) async {
         Product product = await _fetchProduct(item["product_id"]);
         Order order = Order.fromJson(item);

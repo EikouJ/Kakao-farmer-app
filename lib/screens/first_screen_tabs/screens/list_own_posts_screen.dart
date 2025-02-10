@@ -75,7 +75,7 @@ class _ListOwnPostsScreenState extends State<ListOwnPostsScreen> {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
       List<Post> posts = await Future.wait(body.map((dynamic item) async {
         Post post = Post.fromJson(item);
         return post;
@@ -106,18 +106,25 @@ class _ListOwnPostsScreenState extends State<ListOwnPostsScreen> {
       body: PagedListView<int, Post>(
         pagingController: _pagingController,
         builderDelegate: PagedChildBuilderDelegate<Post>(
-            itemBuilder: (context, post, index) => OwnPostWidget(
-                  post: post,
-                  onDelete: () => {
-                    _showDeleteConfirmation(context, post.id!).then((_) {
-                      setState(() {
-                        _fetchAllPosts();
-                        _pagingController.refresh();
-                      });
-                    })
-                  },
-                  onEdit: () => _editPost(context, post),
-                )),
+          itemBuilder: (context, post, index) => OwnPostWidget(
+            post: post,
+            onDelete: () => {
+              _showDeleteConfirmation(context, post.id!).then((_) {
+                setState(() {
+                  _fetchAllPosts();
+                  _pagingController.refresh();
+                });
+              })
+            },
+            onEdit: () => _editPost(context, post),
+          ),
+          noItemsFoundIndicatorBuilder: (context) => Center(
+            child: Text(
+              'Aucun poste disponible',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+          ),
+        ),
       ),
     );
   }

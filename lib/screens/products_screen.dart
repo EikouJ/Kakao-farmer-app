@@ -1,10 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kakao_farmer/screens/first_screen_tabs/home_screen_tab.dart';
-import 'package:kakao_farmer/screens/first_screen_tabs/scanner_screen_tab.dart';
-import 'package:kakao_farmer/screens/first_screen_tabs/statistics_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/add_formation_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/reading_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/video_screen_tab.dart';
 import 'package:kakao_farmer/screens/products_screen_tabs/create_product_screen_tab.dart';
 import 'package:kakao_farmer/screens/products_screen_tabs/list_products_screen_tab.dart';
 

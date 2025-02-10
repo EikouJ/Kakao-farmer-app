@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:kakao_farmer/screens/first_screen_tabs/home_screen_tab.dart';
 import 'package:kakao_farmer/screens/first_screen_tabs/scanner_screen_tab.dart';
 import 'package:kakao_farmer/screens/first_screen_tabs/statistics_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/add_formation_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/reading_screen_tab.dart';
-import 'package:kakao_farmer/screens/learn_tabs/video_screen_tab.dart';
 
 class FirstScreen extends StatefulWidget {
   const FirstScreen({super.key});

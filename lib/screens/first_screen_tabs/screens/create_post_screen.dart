@@ -63,7 +63,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         });
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
       List<Product> products =
           body.map((dynamic item) => Product.fromJson(item)).toList();
 

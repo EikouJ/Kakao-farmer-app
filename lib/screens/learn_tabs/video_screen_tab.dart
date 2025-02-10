@@ -76,6 +76,12 @@ class _VideoScreenTabState extends State<VideoScreenTab> {
                     ],
                   )),
             ),
+            noItemsFoundIndicatorBuilder: (context) => Center(
+              child: Text(
+                'Aucune video disponible',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ),
           ),
         ));
   }

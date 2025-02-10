@@ -81,7 +81,7 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      dynamic body = jsonDecode(response.body);
+      dynamic body = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (body is! Map<String, dynamic>) {
         throw Exception('Failed to fetch user: Invalid response format');
@@ -103,7 +103,7 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
       List<Order> orders = await Future.wait(body.map((dynamic item) async {
         User user = await _fetchUser(item["user_id"]);
         Order order = Order.fromJson(item);
@@ -184,134 +184,141 @@ class _OrdersListScreenState extends State<OthersOrdersScreenTab> {
           child: PagedListView<int, Order>(
             pagingController: _pagingController,
             builderDelegate: PagedChildBuilderDelegate<Order>(
-                itemBuilder: (context, order, index) => ShadowedContainer(
-                    margin: EdgeInsets.all(8),
-                    padding: EdgeInsets.all(16),
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Commande #${order.id}',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Date: ${formatDate(order.createdAt!)}'),
-                        SizedBox(height: 8),
-                        Text('Total: ${order.totalPrice} FCFA'),
-                        SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            /*IconButton(
+              itemBuilder: (context, order, index) => ShadowedContainer(
+                  margin: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(16),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Commande #${order.id}',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Date: ${formatDate(order.createdAt!)}'),
+                      SizedBox(height: 8),
+                      Text('Total: ${order.totalPrice} FCFA'),
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          /*IconButton(
                           icon: Icon(Icons.edit),
                           onPressed: () => _editOrder(context, order),
                         ),*/
-                            if (order.status == "pending")
-                              Text(
-                                "En attente",
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "canceled")
-                              Text(
-                                "Annulée",
-                                style: TextStyle(
-                                    color: Colors.amber,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "validated")
-                              Text(
-                                "Validée",
-                                style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "rejected")
-                              Text(
-                                "rejetée",
-                                style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "pending") ...[
-                              FilledButton(
-                                  onPressed: () async {
-                                    _validatedOrder(order.id!, order.user!.id!)
-                                        .then((_) {
+                          if (order.status == "pending")
+                            Text(
+                              "En attente",
+                              style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "canceled")
+                            Text(
+                              "Annulée",
+                              style: TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "validated")
+                            Text(
+                              "Validée",
+                              style: TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "rejected")
+                            Text(
+                              "rejetée",
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "pending") ...[
+                            FilledButton(
+                                onPressed: () async {
+                                  _validatedOrder(order.id!, order.user!.id!)
+                                      .then((_) {
+                                    setState(() {
+                                      _fetchAllOrders();
+                                      _pagingController.refresh();
+                                    });
+                                  });
+                                },
+                                style: FilledButton.styleFrom(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .secondary
+                                        .withAlpha(30),
+                                    overlayColor: Theme.of(context)
+                                        .colorScheme
+                                        .secondary
+                                        .withAlpha(120),
+                                    foregroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .secondary),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.check,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
+                                    ),
+                                    const SizedBox(
+                                      width: 7,
+                                    ),
+                                    Text("Valider")
+                                  ],
+                                )),
+                            FilledButton(
+                                onPressed: () async {
+                                  await _showCancelConfirmation(
+                                          context, order.id!, order.user!.id!)
+                                      .then((confirmed) {
+                                    if (confirmed) {
                                       setState(() {
-                                        _fetchAllOrders();
-                                        _pagingController.refresh();
+                                        _fetchAllOrders().then(
+                                            (_) => _pagingController.refresh());
                                       });
-                                    });
-                                  },
-                                  style: FilledButton.styleFrom(
-                                      backgroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .secondary
-                                          .withAlpha(30),
-                                      overlayColor: Theme.of(context)
-                                          .colorScheme
-                                          .secondary
-                                          .withAlpha(120),
-                                      foregroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .secondary),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.check,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                      ),
-                                      const SizedBox(
-                                        width: 7,
-                                      ),
-                                      Text("Valider")
-                                    ],
-                                  )),
-                              FilledButton(
-                                  onPressed: () async {
-                                    await _showCancelConfirmation(
-                                            context, order.id!, order.user!.id!)
-                                        .then((confirmed) {
-                                      if (confirmed) {
-                                        setState(() {
-                                          _fetchAllOrders().then((_) =>
-                                              _pagingController.refresh());
-                                        });
-                                      }
-                                    });
-                                  },
-                                  style: FilledButton.styleFrom(
-                                      backgroundColor: Colors.red.withAlpha(30),
-                                      overlayColor: Colors.red.withAlpha(120),
-                                      foregroundColor: Colors.red),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.cancel,
-                                        color: Colors.red,
-                                      ),
-                                      const SizedBox(
-                                        width: 7,
-                                      ),
-                                      Text("Rejeter")
-                                    ],
-                                  ))
-                            ]
-                          ],
-                        ),
-                      ],
-                    ))),
+                                    }
+                                  });
+                                },
+                                style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.red.withAlpha(30),
+                                    overlayColor: Colors.red.withAlpha(120),
+                                    foregroundColor: Colors.red),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.cancel,
+                                      color: Colors.red,
+                                    ),
+                                    const SizedBox(
+                                      width: 7,
+                                    ),
+                                    Text("Rejeter")
+                                  ],
+                                ))
+                          ]
+                        ],
+                      ),
+                    ],
+                  )),
+              noItemsFoundIndicatorBuilder: (context) => Center(
+                child: Text(
+                  'Vous n\'avez reçu aucune commande',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              ),
+            ),
           ),
         )
       ],

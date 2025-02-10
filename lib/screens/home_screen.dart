@@ -3,7 +3,6 @@ import "dart:convert";
 import "package:flutter/material.dart";
 import "package:hive_flutter/hive_flutter.dart";
 import "package:kakao_farmer/glob.dart";
-import "package:kakao_farmer/screens/buy_sell_screen.dart";
 import "package:kakao_farmer/screens/notifications_screen.dart";
 import "package:kakao_farmer/screens/orders_screen.dart";
 import "package:kakao_farmer/screens/first_screen.dart";
@@ -11,11 +10,9 @@ import "package:kakao_farmer/screens/learning_screen.dart";
 import "package:kakao_farmer/screens/login_screen.dart";
 import "package:kakao_farmer/screens/products_screen.dart";
 import "package:kakao_farmer/screens/profil_screen.dart";
-import "package:kakao_farmer/screens/statistics_screen.dart";
 import "package:web_socket_channel/io.dart";
 import "package:web_socket_channel/web_socket_channel.dart";
 import "package:http/http.dart" as http;
-import "package:kakao_farmer/models/notification.dart" as ModelNotification;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,7 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
     mainCache = Hive.box(Glob.mainCache);
 
     Glob.channel = IOWebSocketChannel.connect(Glob.wsUrl);
-    channel = Glob.channel;
+    //channel = Glob.channel;
+    //channel = IOWebSocketChannel.connect(Glob.wsUrl);
 
     // Récupérer le token et l'utilisateur depuis le cache
     Glob.token = mainCache.get("token");
@@ -52,6 +50,28 @@ class _HomeScreenState extends State<HomeScreen> {
     Glob.userStatus = mainCache.get("user_status");
 
     // Websocket authentication
+    /*channel!.sink.add(jsonEncode({
+      "type": "authenticate",
+      "userId": Glob.userId,
+      "status": Glob.userStatus
+    }));
+
+    channel!.stream.listen((message) {
+      print("Main Notification received");
+
+      dynamic datas = jsonDecode(message);
+      if (datas["type"] == "notification") {
+        _setUnreadNotificationsNb();
+      }
+    });
+
+    _setUnreadNotificationsNb();*/
+
+    _initializeListen();
+  }
+
+  void _initializeListen() {
+    channel = IOWebSocketChannel.connect(Glob.wsUrl);
     channel!.sink.add(jsonEncode({
       "type": "authenticate",
       "userId": Glob.userId,
@@ -60,9 +80,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     channel!.stream.listen((message) {
       print("Main Notification received");
-      _setUnreadNotificationsNb();
-    });
 
+      dynamic datas = jsonDecode(message);
+      if (datas["type"] == "notification") {
+        _setUnreadNotificationsNb();
+      }
+    });
     _setUnreadNotificationsNb();
   }
 
@@ -87,7 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
         headers: <String, String>{'Authorization': "Bearer $token"});
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(
+          utf8.decode(response.bodyBytes)); //jsonDecode( response.body);
       List<dynamic> notifs = body
           .where((notification) => notification["read_at"] == null)
           .toList();
@@ -99,7 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
         unreadNotifications = notifs.length;
       });
     } else {
-      throw Exception(
+      /*throw Exception(
+          'Failed to load notifications ${response.statusCode} : ${response.body}');*/
+      print(
           'Failed to load notifications ${response.statusCode} : ${response.body}');
     }
   }
@@ -111,11 +137,11 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pop(context); // Close the drawer
   }
 
-  /*@override
+  @override
   void dispose() {
     channel!.sink.close();
     super.dispose();
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ).then((value) {
                     if (value != null) {}
-                    _setUnreadNotificationsNb();
+                    //_setUnreadNotificationsNb();
+                    _initializeListen();
                   });
                 },
                 icon: Icon(Icons.notifications),

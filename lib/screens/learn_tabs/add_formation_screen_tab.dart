@@ -80,7 +80,7 @@ class _AddFormationScreenTabState extends State<AddFormationScreenTab> {
                     height: 15,
                   ),
                   Text(
-                    'Aucun Post trouvé',
+                    'Aucune Formation trouvée',
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,

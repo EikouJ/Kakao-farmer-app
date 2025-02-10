@@ -17,7 +17,7 @@ class MyOrdersScreenTab extends StatefulWidget {
 
 class _OrdersListScreenState extends State<MyOrdersScreenTab> {
   static const _pageSize = 5;
-  PagingController<int, Order> _pagingController =
+  final PagingController<int, Order> _pagingController =
       PagingController(firstPageKey: 0);
 
   // Importer la route principale globale pour l'API
@@ -75,7 +75,7 @@ class _OrdersListScreenState extends State<MyOrdersScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
       List<Order> orders = await Future.wait(body.map((dynamic item) async {
         Order order = Order.fromJson(item);
         return order;
@@ -121,89 +121,96 @@ class _OrdersListScreenState extends State<MyOrdersScreenTab> {
           child: PagedListView<int, Order>(
             pagingController: _pagingController,
             builderDelegate: PagedChildBuilderDelegate<Order>(
-                itemBuilder: (context, order, index) => ShadowedContainer(
-                    margin: EdgeInsets.all(8),
-                    padding: EdgeInsets.all(16),
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Commande #${order.id}',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Date: ${formatDate(order.createdAt!)}'),
-                        SizedBox(height: 8),
-                        Text('Quantité: ${order.quantity}'),
-                        SizedBox(height: 8),
-                        Text('Total: ${order.totalPrice} FCFA'),
-                        SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            /*IconButton(
+              itemBuilder: (context, order, index) => ShadowedContainer(
+                  margin: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(16),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Commande #${order.id}',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Date: ${formatDate(order.createdAt!)}'),
+                      SizedBox(height: 8),
+                      Text('Quantité: ${order.quantity}'),
+                      SizedBox(height: 8),
+                      Text('Total: ${order.totalPrice} FCFA'),
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          /*IconButton(
                           icon: Icon(Icons.edit),
                           onPressed: () => _editOrder(context, order),
                         ),*/
-                            if (order.status == "pending")
-                              Text(
-                                "En attente",
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "canceled")
-                              Text(
-                                "Annulée",
-                                style: TextStyle(
-                                    color: Colors.amber,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "validated")
-                              Text(
-                                "Validée",
-                                style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "rejected")
-                              Text(
-                                "rejetée",
-                                style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            if (order.status == "pending")
-                              TextButton.icon(
-                                  icon: Icon(
-                                    Icons.cancel,
-                                    color: Colors.red,
-                                  ),
-                                  label: Text(
-                                    "Annuler",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                  onPressed: () async {
-                                    await _showCancelConfirmation(
-                                            context, order.id!)
-                                        .then((confirmed) {
-                                      if (confirmed) {
-                                        setState(() {
-                                          _fetchAllOrders().then((_) =>
-                                              _pagingController.refresh());
-                                        });
-                                      }
-                                    });
-                                  }),
-                          ],
-                        ),
-                      ],
-                    ))),
+                          if (order.status == "pending")
+                            Text(
+                              "En attente",
+                              style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "canceled")
+                            Text(
+                              "Annulée",
+                              style: TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "validated")
+                            Text(
+                              "Validée",
+                              style: TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "rejected")
+                            Text(
+                              "rejetée",
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          if (order.status == "pending")
+                            TextButton.icon(
+                                icon: Icon(
+                                  Icons.cancel,
+                                  color: Colors.red,
+                                ),
+                                label: Text(
+                                  "Annuler",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                onPressed: () async {
+                                  await _showCancelConfirmation(
+                                          context, order.id!)
+                                      .then((confirmed) {
+                                    if (confirmed) {
+                                      setState(() {
+                                        _fetchAllOrders().then(
+                                            (_) => _pagingController.refresh());
+                                      });
+                                    }
+                                  });
+                                }),
+                        ],
+                      ),
+                    ],
+                  )),
+              noItemsFoundIndicatorBuilder: (context) => Center(
+                child: Text(
+                  'Vous n\'avez passer aucune commande',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              ),
+            ),
           ),
         )
       ],

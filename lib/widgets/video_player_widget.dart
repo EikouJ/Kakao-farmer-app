@@ -4,7 +4,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 class VideoPlayerWidget extends StatelessWidget {
   final String videoId;
 
-  VideoPlayerWidget({required this.videoId});
+  const VideoPlayerWidget({super.key, required this.videoId});
 
   @override
   Widget build(BuildContext context) {

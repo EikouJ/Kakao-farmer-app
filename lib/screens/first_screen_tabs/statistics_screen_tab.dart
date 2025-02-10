@@ -6,7 +6,6 @@ import 'package:kakao_farmer/models/order.dart';
 import 'package:kakao_farmer/models/product.dart';
 import 'package:kakao_farmer/models/user.dart';
 import "package:http/http.dart" as http;
-import 'package:kakao_farmer/widgets/shadowed_container.dart';
 
 class StatisticsScreenTab extends StatefulWidget {
   const StatisticsScreenTab({super.key});
@@ -36,7 +35,7 @@ class _StatisticsScreenTabState extends State<StatisticsScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      dynamic body = jsonDecode(response.body);
+      dynamic body = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (body is! Map<String, dynamic>) {
         throw Exception('Failed to load product: Invalid response format');
@@ -58,7 +57,7 @@ class _StatisticsScreenTabState extends State<StatisticsScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      dynamic body = jsonDecode(response.body);
+      dynamic body = jsonDecode(utf8.decode(response.bodyBytes));
       //print(body.runtimeType);
       if (body is! Map<String, dynamic>) {
         throw Exception('Failed to load product: Invalid response format');
@@ -82,7 +81,7 @@ class _StatisticsScreenTabState extends State<StatisticsScreenTab> {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
       List<Order> orders = await Future.wait(body.map((dynamic item) async {
         Product product = await _fetchProduct(item["product_id"]);
         Order order = Order.fromJson(item);

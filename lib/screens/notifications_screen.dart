@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -54,7 +53,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       }
     });
 
-    _readAllNotifications();
+    //_readAllNotifications();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    ModalRoute.of(context)!.addScopedWillPopCallback(() async {
+      // Action to perform when the page is popped
+      print("Page is being popped");
+      return true; // Return true to allow the pop, false to prevent it
+    });
   }
 
   Future<void> _fetchAllNotifications() async {
@@ -127,62 +137,78 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Notifications",
-            style: TextStyle(color: Colors.white),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        /*if (didPop) {
+          return;
+        }*/
+        _readAllNotifications();
+        return;
+      },
+      child: Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              "Notifications",
+              style: TextStyle(color: Colors.white),
+            ),
+            centerTitle: true,
           ),
-          centerTitle: true,
-        ),
-        body: PagedListView<int, ModelNotification.Notification>(
-            pagingController: _pagingController,
-            builderDelegate:
-                PagedChildBuilderDelegate<ModelNotification.Notification>(
-              itemBuilder: (context, notification, index) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Icon(
-                        Icons.notifications_active,
-                        color: Colors.green,
-                      ),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Text(
-                        notification.title!,
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      )
-                    ],
-                  ),
-                  subtitle: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(notification.content!),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [Text(formatDate(notification.date!))],
-                      )
-                    ],
-                  ),
-                  tileColor: notification.readAt == null
-                      ? Colors.green.withAlpha(60)
-                      : Colors.grey.withAlpha(60),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      _deleteNotification(notification.id!);
-                    },
+          body: PagedListView<int, ModelNotification.Notification>(
+              pagingController: _pagingController,
+              builderDelegate:
+                  PagedChildBuilderDelegate<ModelNotification.Notification>(
+                itemBuilder: (context, notification, index) => Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Icon(
+                          Icons.notifications_active,
+                          color: Colors.green,
+                        ),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Text(
+                          notification.title!,
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        )
+                      ],
+                    ),
+                    subtitle: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(notification.content!),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [Text(formatDate(notification.date!))],
+                        )
+                      ],
+                    ),
+                    tileColor: notification.readAt == null
+                        ? Colors.green.withAlpha(60)
+                        : Colors.grey.withAlpha(60),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        _deleteNotification(notification.id!);
+                      },
+                    ),
                   ),
                 ),
-              ),
-            )));
+                noItemsFoundIndicatorBuilder: (context) => Center(
+                  child: Text(
+                    'Vous n\'avez aucune notification pour l\'instant',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ),
+              ))),
+    );
   }
 
   // When open notifications screen, all unread notifications are set as read
@@ -202,7 +228,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         "content": "Read All"
       }));*/
     } else {
-      throw Exception('Failed to read all the notifications');
+      throw Exception(
+          'Failed to read all the notifications ${response.statusCode}');
     }
   }
 

@@ -1,9 +1,6 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:kakao_farmer/models/post.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:kakao_farmer/models/product.dart';
 import 'package:kakao_farmer/screens/create_order_screen.dart';
 
 class PostWidget extends StatelessWidget {

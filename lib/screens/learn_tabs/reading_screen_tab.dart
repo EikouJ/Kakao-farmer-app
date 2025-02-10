@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:kakao_farmer/widgets/post_widget.dart';
-import 'package:kakao_farmer/widgets/shadowed_container.dart';
 
 class ReadingScreenTab extends StatefulWidget {
   const ReadingScreenTab({super.key});

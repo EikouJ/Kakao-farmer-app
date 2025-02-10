@@ -1,8 +1,5 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:kakao_farmer/glob.dart';
 import 'package:kakao_farmer/models/product.dart';
-import "package:http/http.dart" as http;
 
 class OwnProductWidget extends StatelessWidget {
   final String? image;
