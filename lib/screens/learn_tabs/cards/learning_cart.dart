@@ -42,7 +42,7 @@ class LearnedCard extends StatelessWidget {
                 width: 65,
                 height: 65,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2F80ED).withValues(13),
+                  color: const Color(0xFF2F80ED).withValues(),
                   borderRadius: BorderRadius.circular(17),
                 ),
                 // child: SvgPicture.asset(
