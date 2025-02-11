@@ -1,7 +1,5 @@
-
-
 class Course {
-  final String id;
+  final String courseId;
   final String imageUrl;
   final String rating;
   final bool isBookmarked;
@@ -15,18 +13,18 @@ class Course {
   String courseTag;
 
   Course(
-      {required this.id,
-        required this.imageUrl,
-        required this.rating,
-        required this.isBookmarked,
-        required this.courseTitle,
-        required this.instructor,
-        required this.price,
-        required this.duration,
-        required this.sectionsLength,
-        required this.sectionLaps,
-        this.description = _description,
-        required this.courseTag});
+      {required this.courseId,
+      required this.imageUrl,
+      required this.rating,
+      required this.isBookmarked,
+      required this.courseTitle,
+      required this.instructor,
+      required this.price,
+      required this.duration,
+      required this.sectionsLength,
+      required this.sectionLaps,
+      this.description = _description,
+      required this.courseTag});
 }
 
 const _description =

@@ -1,39 +1,39 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
-import 'package:go_router/go_router.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/Tag.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/course_detail_page.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/courses_data.dart';
 
-class CourseSlider extends StatelessWidget {
-  const CourseSlider({super.key});
+class CourseHorizontalSlider extends StatelessWidget {
+  const CourseHorizontalSlider({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      scrollDirection: Axis.vertical,
-      itemCount: coursesData.length,
-      itemBuilder: (BuildContext context, int index) {
-        return CourseTile(
-          courseId: coursesData[index].courseId,
-          imageURL: coursesData[index].imageUrl,
-          rating: coursesData[index].rating,
-          title: coursesData[index].courseTitle,
-          instructor: coursesData[index].instructor,
-          price: coursesData[index].price,
-          isBookmarked: coursesData[index].isBookmarked,
-          tagTitle: coursesData[index].courseTag,
-        );
-      },
+    return SizedBox(
+      height: 250,
+      child: ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount: coursesData.length,
+        itemBuilder: (BuildContext context, int index) {
+          return CourseTile(
+              courseId: coursesData[index].courseId,
+              imageURL: coursesData[index].imageUrl,
+              rating: coursesData[index].rating,
+              title: coursesData[index].courseTitle,
+              instructor: coursesData[index].instructor,
+              price: coursesData[index].price,
+              isBookmarked: coursesData[index].isBookmarked,
+              tagTitle: coursesData[index].courseTag);
+        },
+      ),
     );
   }
 }
 
 class CourseTile extends StatelessWidget {
-  final String? courseId;
+  String? courseId;
   final String imageURL;
   final String rating;
   final String title;
@@ -41,39 +41,37 @@ class CourseTile extends StatelessWidget {
   final String price;
   final bool isBookmarked;
   final String tagTitle;
+  Widget child;
 
-  const CourseTile({
-    super.key,
-    required this.courseId,
-    required this.imageURL,
-    required this.rating,
-    required this.title,
-    required this.instructor,
-    required this.price,
-    required this.isBookmarked,
-    required this.tagTitle,
-  });
+  CourseTile(
+      {super.key,
+      required this.courseId,
+      required this.imageURL,
+      required this.rating,
+      required this.title,
+      required this.instructor,
+      required this.price,
+      required this.isBookmarked,
+      required this.tagTitle,
+      this.child = const SizedBox()});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      // onTap: () => selectedCourse(context),
+      //onTap: (() => selectedCourse(context)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 16, right: 5),
+              margin: const EdgeInsets.only(top: 10, bottom: 8, right: 5),
               constraints: const BoxConstraints.expand(height: 150, width: 250),
-              padding: const EdgeInsets.only(left: 16, bottom: 16, right: 16),
+              padding: const EdgeInsets.only(left: 16, bottom: 8, right: 16),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                image: DecorationImage(
-                  image: AssetImage(imageURL),
-                  fit: BoxFit.cover,
-                ),
-              ),
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                      image: AssetImage(imageURL), fit: BoxFit.cover)),
               child: Stack(
                 children: [
                   Positioned(
@@ -82,9 +80,8 @@ class CourseTile extends StatelessWidget {
                     child: Container(
                       height: 25,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5)),
                       child: Padding(
                         padding: const EdgeInsets.all(3),
                         child: Row(
@@ -93,16 +90,16 @@ class CourseTile extends StatelessWidget {
                             Text(
                               rating,
                               style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                  fontSize: 15, fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(
+                              width: 4,
+                            ),
                             Icon(
-                              Icons.star,
+                              IconlyBold.star,
                               size: 15,
                               color: Colors.yellow[800],
-                            ),
+                            )
                           ],
                         ),
                       ),
@@ -114,27 +111,27 @@ class CourseTile extends StatelessWidget {
             Text(
               title,
               style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
             ),
             Text(
               instructor,
               style: TextStyle(fontSize: 10, color: Colors.grey),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 5),
+            const SizedBox(
+              height: 5,
+            ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   price,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.yellow[900],
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 14,
+                      color: Colors.yellow[900],
+                      fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 5),
-                Tag(title: tagTitle),
+                const SizedBox(
+                  width: 5,
+                ),
+                Tag(title: tagTitle)
               ],
             ),
           ],

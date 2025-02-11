@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/header_text_field.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/course_slider.dart';
-import 'package:kakao_farmer/screens/learn_tabs/cards/details/Tag.dart';
+import 'package:kakao_farmer/screens/learn_tabs/cards/course_horizontal_slider.dart';
 import 'package:ionicons/ionicons.dart'; // Importation d'Ionic pour les icônes
 
 class ReadingScreenTab extends StatefulWidget {
@@ -34,7 +34,7 @@ class _ReadingScreenTab extends State<ReadingScreenTab> {
                   ),
                 ),
                 Text(
-                  "Apprenez quelque chose de nouveau chaque jour",
+                  "Apprenez avec nous!",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.grey,
@@ -61,7 +61,7 @@ class _ReadingScreenTab extends State<ReadingScreenTab> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: const Color.fromARGB(255, 255, 253, 253),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -72,11 +72,11 @@ class _ReadingScreenTab extends State<ReadingScreenTab> {
                   child: Column(
                     children: [
                       HeaderTextField(
-                        title: "Courses For You",
+                        title: "Pour vous",
                       ),
-                      const CourseSlider(),
+                      const CourseHorizontalSlider(),
                       const SizedBox(height: 10),
-                      HeaderTextField(title: "Trending"),
+                      HeaderTextField(title: "Populaire"),
                       const CourseSlider(),
                     ],
                   ),

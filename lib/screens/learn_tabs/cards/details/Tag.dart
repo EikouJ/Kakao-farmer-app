@@ -10,7 +10,7 @@ class Tag extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.blueAccent,
+        color: Color.fromARGB(255, 134, 21, 1),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Text(

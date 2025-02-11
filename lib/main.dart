@@ -1,10 +1,11 @@
 import 'dart:convert';
-
+import 'package:go_router/go_router.dart';
 import "package:flutter/material.dart";
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kakao_farmer/glob.dart';
 import 'package:kakao_farmer/screens/main_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:kakao_farmer/screens/learn_tabs/cards/details/course_detail_page.dart';
 
 void main() async {
   //  Initialisation de Hive
