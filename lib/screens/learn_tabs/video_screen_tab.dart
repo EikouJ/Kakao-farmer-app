@@ -56,37 +56,46 @@ class _DocScreenTabState extends State<DocScreenTab> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 200,
       padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
       child: PagedListView<int, String>(
         pagingController: _pagingController,
         builderDelegate: PagedChildBuilderDelegate<String>(
           itemBuilder: (context, documentUrl, index) => ShadowedContainer(
-            margin: EdgeInsets.all(4),
-            padding: EdgeInsets.all(4),
+            margin: EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             content: Padding(
               padding: EdgeInsets.all(8),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ElevatedButton(
                     onPressed: () => _openPdf(documentUrl),
-                    child: Text('Open Document ${index + 1}'),
+                    child: Text('Read'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color.fromARGB(
                           255, 131, 41, 41), // Updated: Background color
                       foregroundColor: Colors.white, // Text color
                       padding: EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 20), // Padding
+                          vertical: 20, horizontal: 20), // Padding
                       shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(8), // Rounded corners
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text('Document ${index + 1}',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  // const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text('Techniques de récolte:',
+                            style: Theme.of(context).textTheme.titleMedium),
+                        Text('De la Ferme à la Table',
+                            style: Theme.of(context).textTheme.titleSmall),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

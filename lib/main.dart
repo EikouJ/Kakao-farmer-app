@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kakao_farmer/glob.dart';
 import 'package:kakao_farmer/screens/main_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:kakao_farmer/screens/learn_tabs/cards/details/course_detail_page.dart';
+import 'package:kakao_farmer/screens/learn_tabs/reading_screen_tab.dart';
 
 void main() async {
   //  Initialisation de Hive

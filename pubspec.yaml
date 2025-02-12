@@ -56,6 +56,7 @@ dependencies:
   get:
   video_player:
   url_launcher:
+  chewie:
   flutter_pdfview:
   go_router: ^6.0.0
 
@@ -91,7 +92,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/
-    - assets/json/video_info.json
+    - assets/json/videoInfo.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
