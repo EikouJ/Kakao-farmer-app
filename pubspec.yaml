@@ -53,6 +53,10 @@ dependencies:
   web_socket_channel: ^3.0.2
   # camerawesome: ^2.1.0
   iconly: ^1.0.1
+  get:
+  video_player:
+  url_launcher:
+  flutter_pdfview:
   go_router: ^6.0.0
 
 dev_dependencies:
@@ -86,6 +90,8 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/
+    - assets/images/
+    - assets/json/video_info.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

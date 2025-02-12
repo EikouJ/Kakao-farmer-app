@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:kakao_farmer/widgets/shadowed_container.dart';
-import 'package:kakao_farmer/widgets/video_player_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class VideoScreenTab extends StatefulWidget {
-  const VideoScreenTab({super.key});
+class DocScreenTab extends StatefulWidget {
+  const DocScreenTab({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _VideoScreenTabState createState() => _VideoScreenTabState();
+  _DocScreenTabState createState() => _DocScreenTabState();
 }
 
-class _VideoScreenTabState extends State<VideoScreenTab> {
+class _DocScreenTabState extends State<DocScreenTab> {
   static const _pageSize = 5;
   final PagingController<int, String> _pagingController =
       PagingController(firstPageKey: 0);
 
-  final List<String> videoIds = [
-    'dQw4w9WgXcQ',
-    '3JZ_D3ELwOQ',
-    'tgbNymZ7vqY',
-    'L_jWHffIx5E',
-    '9bZkp7q19f0',
-    'e-ORhEE9VVg',
-    'nVjsGKrE6E8',
-    'Pkh8UtuejGw',
-    'JGwWNGJdvx8',
-    'kJQP7kiw5Fk'
+  final List<String> documentUrls = [
+    'https://example.com/document1.pdf',
+    'https://example.com/document2.pdf',
+    // Add more document URLs here
   ];
 
   @override
@@ -40,7 +32,7 @@ class _VideoScreenTabState extends State<VideoScreenTab> {
   Future<void> _fetchPage(int pageKey) async {
     try {
       final newItems =
-          videoIds.skip(pageKey * _pageSize).take(_pageSize).toList();
+          documentUrls.skip(pageKey * _pageSize).take(_pageSize).toList();
       final isLastPage = newItems.length < _pageSize;
       if (isLastPage) {
         _pagingController.appendLastPage(newItems);
@@ -53,31 +45,55 @@ class _VideoScreenTabState extends State<VideoScreenTab> {
     }
   }
 
+  Future<void> _openPdf(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
-        child: PagedListView<int, String>(
-          pagingController: _pagingController,
-          builderDelegate: PagedChildBuilderDelegate<String>(
-            itemBuilder: (context, videoId, index) => ShadowedContainer(
-              margin: EdgeInsets.all(4),
-              padding: EdgeInsets.all(4),
-              content: Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      VideoPlayerWidget(videoId: videoId),
-                      const SizedBox(height: 10),
-                      Text('Video $videoId',
-                          style: Theme.of(context).textTheme.titleMedium),
-                    ],
-                  )),
+      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+      child: PagedListView<int, String>(
+        pagingController: _pagingController,
+        builderDelegate: PagedChildBuilderDelegate<String>(
+          itemBuilder: (context, documentUrl, index) => ShadowedContainer(
+            margin: EdgeInsets.all(4),
+            padding: EdgeInsets.all(4),
+            content: Padding(
+              padding: EdgeInsets.all(8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _openPdf(documentUrl),
+                    child: Text('Open Document ${index + 1}'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(
+                          255, 131, 41, 41), // Updated: Background color
+                      foregroundColor: Colors.white, // Text color
+                      padding: EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 20), // Padding
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(8), // Rounded corners
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text('Document ${index + 1}',
+                      style: Theme.of(context).textTheme.titleMedium),
+                ],
+              ),
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   @override

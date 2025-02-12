@@ -1,7 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:iconly/iconly.dart';
-import 'package:go_router/go_router.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/Tag.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/course_detail_page.dart';
 import 'package:kakao_farmer/screens/learn_tabs/cards/details/courses_data.dart';
@@ -57,7 +55,14 @@ class CourseTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      // onTap: () => selectedCourse(context),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CourseDetailPage(),
+          ),
+        );
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(

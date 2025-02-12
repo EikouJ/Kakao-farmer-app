@@ -6,7 +6,7 @@ final coursesData = [
     imageUrl: 'assets/images/image1.jpeg',
     rating: '4.5',
     isBookmarked: false,
-    courseTitle: 'Web Development Bootcamp',
+    courseTitle: 'Maîtrise de la Culture du Cacao',
     instructor: 'Dr. Angela Yu',
     price: "XAF 17 000",
     duration: '30hr 30mins',
@@ -19,7 +19,7 @@ final coursesData = [
     imageUrl: 'assets/images/image2.jpeg',
     rating: '4.2',
     isBookmarked: true,
-    courseTitle: 'Practical Leadership Skills',
+    courseTitle: 'Techniques de Transformation du Cacao',
     instructor: 'Chris Croft',
     price: "XAF 14 999",
     duration: '4hr 10mins',
@@ -32,9 +32,9 @@ final coursesData = [
     imageUrl: 'assets/images/image3.jpeg',
     rating: '3.9',
     isBookmarked: true,
-    courseTitle: 'Communication Skills Master Class',
+    courseTitle: 'Stratégies de Marketing pour le Cacao',
     instructor: 'Walker',
-    price: "\$XAF 12 000",
+    price: "XAF 12 000",
     duration: '4hr 30mins',
     sectionsLength: '5 Lessons',
     sectionLaps: sections,
@@ -45,7 +45,7 @@ final coursesData = [
     imageUrl: 'assets/images/image4.jpeg',
     rating: '4.0',
     isBookmarked: false,
-    courseTitle: 'Excel from Beginner to Advanced',
+    courseTitle: 'Cacao : De la Ferme à la Table',
     instructor: 'Kyle Pew',
     price: "XAF 12 499",
     duration: '39hr 30mins',
@@ -58,7 +58,7 @@ final coursesData = [
     imageUrl: 'assets/images/image5.jpeg',
     rating: '4.2',
     isBookmarked: true,
-    courseTitle: 'Public Relations: Media Crisis',
+    courseTitle: 'Savoir-Faire en Chocolaterie : Cacao à Chocolat',
     instructor: 'Walker',
     price: "XAF 20 000",
     duration: '24hr 50mins',
@@ -69,10 +69,10 @@ final coursesData = [
 ];
 
 List sections = [
-  ['Introduction to course', '20 min'],
-  ['Dive in', '4h 40 min'],
-  ['How to apply what you learned', '2h 20 min'],
-  ['Outro', '40 min'],
+  ['Introduction à la culture du cacao', '20 min'],
+  ['Techniques de récolte', '4h 40 min'],
+  ['Transformation du cacao', '2h 20 min'],
+  ['Conclusion et perspectives', '40 min'],
 ];
 
 List tags = [

@@ -29,7 +29,7 @@ class _ReadingScreenTab extends State<ReadingScreenTab> {
                   "Bonjour User",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF650F00),
+                    color: Color.fromARGB(255, 131, 41, 41),
                     fontSize: 20,
                   ),
                 ),

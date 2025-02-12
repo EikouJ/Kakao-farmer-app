@@ -1,498 +1,417 @@
-import 'package:kakao_farmer/screens/learn_tabs/cards/details/course.dart';
-import 'package:kakao_farmer/screens/learn_tabs/cards/details/courses_data.dart';
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:iconly/iconly.dart';
+import 'package:video_player/video_player.dart';
+
+class VideoInfo {
+  final String title;
+  final String time;
+  final String thumbnail;
+  final String videoPath; // Changed from videoURL to videoPath
+
+  VideoInfo({
+    required this.title,
+    required this.time,
+    required this.thumbnail,
+    required this.videoPath,
+  });
+
+  factory VideoInfo.fromJson(Map<String, dynamic> json) {
+    return VideoInfo(
+      title: json['title'] ?? '',
+      time: json['time'] ?? '',
+      thumbnail: json['thumbnail'] ?? '',
+      videoPath: json['videoPath'] ?? '', // Use videoPath instead of videoURL
+    );
+  }
+}
 
 class CourseDetailPage extends StatefulWidget {
-  final String? courseId;
-
-  const CourseDetailPage({Key? key, required this.courseId}) : super(key: key);
+  const CourseDetailPage({Key? key}) : super(key: key);
 
   @override
   _CourseDetailPageState createState() => _CourseDetailPageState();
 }
 
 class _CourseDetailPageState extends State<CourseDetailPage> {
-  List<bool> isSelected = [true, false];
+  List<VideoInfo> _videoInfo = [];
+  bool _playArea = false;
+  bool _isPlaying = false;
+  VideoPlayerController? _controller;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  int _currentVideoIndex = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    try {
+      final String value = await DefaultAssetBundle.of(context)
+          .loadString("assets/json/video_info.json");
+      setState(() {
+        final List<dynamic> decodedData = json.decode(value);
+        _videoInfo =
+            decodedData.map((item) => VideoInfo.fromJson(item)).toList();
+      });
+    } catch (e) {
+      debugPrint("Error loading JSON data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Échec du chargement du contenu du cours')),
+      );
+    }
+  }
+
+  Future<void> _initializeVideo(int index) async {
+    if (index < 0 || index >= _videoInfo.length) return;
+
+    final videoPath = _videoInfo[index].videoPath;
+    if (videoPath.isEmpty) return;
+
+    try {
+      await _controller?.dispose();
+      _controller = VideoPlayerController.asset(
+          "assets/videos/Shimmer_Loading_Effect___FLUTTER_Tutorial(720p).mp4");
+
+      await _controller!.initialize();
+      _controller!.addListener(_onControllerUpdate);
+      await _controller!.play();
+
+      setState(() {
+        _currentVideoIndex = index;
+        _isPlaying = true;
+        _playArea = true;
+      });
+    } catch (e) {
+      debugPrint("Error initializing video: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Erreur lors du chargement de la vidéo: ${e.toString()}'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _onControllerUpdate() {
+    if (_controller != null && _controller!.value.isInitialized) {
+      setState(() {
+        _position = _controller!.value.position;
+        _duration = _controller!.value.duration;
+        _isPlaying = _controller!.value.isPlaying;
+      });
+    }
+  }
+
+  void _playNextVideo() {
+    if (_currentVideoIndex < _videoInfo.length - 1) {
+      _initializeVideo(_currentVideoIndex + 1);
+    }
+  }
+
+  void _playPreviousVideo() {
+    if (_currentVideoIndex > 0) {
+      _initializeVideo(_currentVideoIndex - 1);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return duration.inHours > 0
+        ? '$hours:$minutes:$seconds'
+        : '$minutes:$seconds';
+  }
+
+  Widget _buildVideoControls() {
+    return Column(
+      children: [
+        Slider(
+          value: _position.inSeconds.toDouble(),
+          min: 0,
+          max: _duration.inSeconds.toDouble(),
+          onChanged: (value) {
+            final newPosition = Duration(seconds: value.toInt());
+            setState(() {
+              _position = newPosition; // Update position in real-time
+            });
+          },
+          onChangeEnd: (value) {
+            _controller?.seekTo(Duration(seconds: value.toInt()));
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(_formatDuration(_position),
+                  style: TextStyle(color: Colors.white)),
+              Text(_formatDuration(_duration),
+                  style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              onPressed: _currentVideoIndex > 0 ? _playPreviousVideo : null,
+              icon: Icon(Icons.skip_previous,
+                  color: _currentVideoIndex > 0 ? Colors.white : Colors.grey,
+                  size: 36),
+            ),
+            IconButton(
+              onPressed: () {
+                final newPosition = _position - Duration(seconds: 10);
+                _controller?.seekTo(newPosition);
+              },
+              icon: Icon(Icons.replay_10, color: Colors.white, size: 36),
+            ),
+            IconButton(
+              onPressed: () {
+                if (_controller != null) {
+                  setState(() {
+                    _isPlaying ? _controller?.pause() : _controller?.play();
+                    _isPlaying = !_isPlaying;
+                  });
+                }
+              },
+              icon: Icon(
+                _isPlaying ? Icons.pause : Icons.play_arrow,
+                color: Colors.white,
+                size: 46,
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                final newPosition = _position + Duration(seconds: 10);
+                _controller?.seekTo(newPosition);
+              },
+              icon: Icon(Icons.forward_10, color: Colors.white, size: 36),
+            ),
+            IconButton(
+              onPressed: _currentVideoIndex < _videoInfo.length - 1
+                  ? _playNextVideo
+                  : null,
+              icon: Icon(Icons.skip_next,
+                  color: _currentVideoIndex < _videoInfo.length - 1
+                      ? Colors.white
+                      : Colors.grey,
+                  size: 36),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    final course = coursesData.firstWhere((c) => c.courseId == widget.courseId);
-
     return Scaffold(
-      body: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              child: SizedBox(
-                height: size.height,
+      body: Container(
+        decoration: _playArea
+            ? BoxDecoration(color: Colors.black)
+            : BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 228, 97, 97),
+                    Color.fromARGB(255, 131, 41, 41),
+                  ],
+                  begin: const FractionalOffset(0.0, 0.4),
+                  end: Alignment.topCenter,
+                ),
+              ),
+        child: Column(
+          children: [
+            if (_playArea) ...[
+              SafeArea(
                 child: Column(
                   children: [
                     Container(
-                      margin: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      height: 60,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Container(
-                                  width: 35,
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_back_ios_outlined,
-                                    color: Colors.grey,
-                                    size: 15,
-                                  ),
-                                ),
-                              ),
-                              const Text(
-                                'Course Overview',
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _playArea = false;
+                                _controller?.pause();
+                              });
+                            },
+                            icon: Icon(Icons.arrow_back_ios,
+                                color: Colors.white, size: 20),
+                          ),
+                          Expanded(child: Container()),
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(Icons.info_outline,
+                                color: Colors.white, size: 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_controller != null && _controller!.value.isInitialized)
+                      AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: VideoPlayer(_controller!),
+                      )
+                    else
+                      AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      ),
+                    _buildVideoControls(),
+                  ],
+                ),
+              ),
+            ] else ...[
+              SafeArea(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            icon: Icon(Icons.arrow_back_ios,
+                                size: 20, color: Colors.white),
+                          ),
+                          Expanded(child: Container()),
+                          Icon(Icons.info_outline,
+                              size: 20, color: Colors.white),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Transformation du cacao',
+                        style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        'Comment traiter la fève',
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      ),
+                      SizedBox(height: 20),
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white.withOpacity(0.1),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.timer, color: Colors.white, size: 16),
+                            SizedBox(width: 5),
+                            Text("2h 20min",
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 21),
-                              ),
-                              Container(
-                                width: 35,
-                                height: 35,
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.favorite,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                                    color: Colors.white70, fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+                itemCount: _videoInfo.length,
+                itemBuilder: (context, index) {
+                  final video = _videoInfo[index];
+                  return GestureDetector(
+                    onTap: () => _initializeVideo(index),
+                    child: Container(
+                      height: 100,
+                      margin: EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
                           ),
-                          const SizedBox(height: 35),
-                          const Text(
-                            'UI/UX: Designing with a User-Centered Approach.',
-                            style: TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 25),
-                          Center(
-                            child: Container(
-                              width: size.width,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(30),
-                                  topLeft: Radius.circular(30),
-                                ),
-                                color: Colors.blueAccent,
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                bottomLeft: Radius.circular(15),
                               ),
-                              child: Stack(
+                              image: DecorationImage(
+                                image: AssetImage(video.thumbnail),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset('assets/images/u.png'),
-                                  Positioned(
-                                    top: 80,
-                                    left: 157,
-                                    child: Container(
-                                      width: 70,
-                                      height: 70,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white10,
-                                        borderRadius: BorderRadius.circular(40),
-                                      ),
-                                      child: const Icon(
-                                        Icons.play_arrow,
-                                        color: Colors.white,
-                                        size: 40,
-                                      ),
+                                  Text(
+                                    video.title,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromARGB(255, 131, 41, 41),
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    video.time,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: const BorderRadius.only(
-                                bottomRight: Radius.circular(30),
-                                bottomLeft: Radius.circular(30),
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(25.0)),
-                                        border: Border.all(color: Colors.grey),
-                                      ),
-                                      child: IconButton(
-                                        onPressed: () {},
-                                        icon: const Icon(Icons.play_arrow),
-                                      ),
-                                    ),
-                                    const Text('05:10/12:50'),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          onPressed: () {},
-                                          icon: const Icon(Icons.volume_down,
-                                              color: Colors.grey),
-                                        ),
-                                        IconButton(
-                                          onPressed: () {},
-                                          icon: const Icon(
-                                              Icons.fullscreen_sharp,
-                                              color: Colors.black),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          Center(
-                            child: ToggleButtons(
-                              disabledColor: Colors.grey,
-                              selectedColor: Colors.white,
-                              borderWidth: 2,
-                              borderRadius: BorderRadius.circular(20),
-                              children: <Widget>[
-                                Container(
-                                  width: 150,
-                                  padding: const EdgeInsets.all(15),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      const Text(
-                                        'Playlist',
-                                        style: TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Container(
-                                        width: 30,
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade50,
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            '65',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 150,
-                                  padding: const EdgeInsets.all(15),
-                                  child: const Text(
-                                    'Descriptions',
-                                    style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                              onPressed: (int index) {
-                                setState(() {
-                                  isSelected[index] = !isSelected[index];
-                                });
-                              },
-                              isSelected: isSelected,
-                            ),
-                          ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      width: size.width,
-                      child: ListView(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        children: [
-                          ListTile(
-                            tileColor: Colors.lightBlue.shade50,
-                            leading: Container(
-                              width: 35,
-                              height: 35,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.blueAccent,
-                              ),
-                              child: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.white,
-                              ),
-                            ),
-                            title: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 7),
-                                Text('Introduction',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                SizedBox(height: 7),
-                                Text('05:30/12:50',
-                                    style: TextStyle(color: Colors.grey)),
-                                SizedBox(height: 7),
-                              ],
-                            ),
-                          ),
-                          ListTile(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    content: SizedBox(
-                                      height: 100,
-                                      child: Column(
-                                        children: [
-                                          const Text(
-                                              'You need to complete the previous videos!! '),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('Fine!'),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            leading: Container(
-                              width: 35,
-                              height: 35,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade400),
-                                color: Colors.white,
-                              ),
-                              child: const Center(
-                                child:
-                                    Text('2', style: TextStyle(fontSize: 16)),
-                              ),
-                            ),
-                            title: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 7),
-                                Text('What is UX?'),
-                                SizedBox(height: 7),
-                                Text('05:30/12:50'),
-                                SizedBox(height: 7),
-                              ],
-                            ),
-                            trailing: const Icon(Icons.lock),
-                          ),
-                          ListTile(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    content: SizedBox(
-                                      height: 100,
-                                      child: Column(
-                                        children: [
-                                          const Text(
-                                              'You need to complete the previous videos!! '),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('Fine!'),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            leading: Container(
-                              width: 35,
-                              height: 35,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade400),
-                                color: Colors.white,
-                              ),
-                              child: const Center(
-                                child:
-                                    Text('3', style: TextStyle(fontSize: 16)),
-                              ),
-                            ),
-                            title: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 7),
-                                Text('User-Centred Design Process'),
-                                SizedBox(height: 7),
-                                Text('05:30/12:50'),
-                                SizedBox(height: 7),
-                              ],
-                            ),
-                            trailing: const Icon(Icons.lock),
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
+                  );
+                },
               ),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: SizedBox(
-              width: size.width,
-              height: 130,
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(35),
-                        topRight: Radius.circular(35),
-                      ),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    width: size.width,
-                    height: 130,
-                    child: Column(
-                      children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Price',
-                              style: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              '\$ 29.99',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                              onTap: () {},
-                              child: Container(
-                                width: 45,
-                                decoration: BoxDecoration(
-                                  border:
-                                      Border.all(color: Colors.grey.shade400),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                height: 45,
-                                child: const Icon(
-                                  Icons.shopping_cart,
-                                  color: Colors.blueAccent,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text('UX&UI was added to your cart'),
-                                ));
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                width: 290,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  color: Colors.blue.shade600,
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Buy Now!',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-}
-
-// CustomPainter class remains unchanged
-class BNBCustomerPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    Path path = Path()..moveTo(0, 20);
-    path.quadraticBezierTo(size.width * 0.20, 0, size.width * 0.35, 0);
-    path.quadraticBezierTo(size.width * 0.65, 0, size.width * 0.40, 20);
-    path.quadraticBezierTo(size.width * 0.1, 0, size.width * 0.65, 0);
-    path.quadraticBezierTo(size.width * 0.8, 0, size.width, 20);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-    canvas.drawShadow(path, Colors.black, 5, true);
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }

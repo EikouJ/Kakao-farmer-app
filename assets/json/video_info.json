@@ -1,0 +1,32 @@
+[
+    {
+      "title": "Transformation du Cacao",
+      "time": "60 secondes",
+      "thumbnail": "assets/images/transformation_cacao.jpg",
+      "videoPath": "https://youtu.be/TEBMnGM4p0o?si=vXR5EqM8FCL3S82B"
+    },
+    {
+      "title": "Comment Traiter la Fève de Cacao",
+      "time": "120 secondes",
+      "thumbnail": "assets/images/traitement_feve.jpg",
+      "videoPath": "https://youtu.be/TEBMnGM4p0o?si=vXR5EqM8FCL3S82B"
+    },
+    {
+      "title": "Fermentation des Fèves de Cacao",
+      "time": "90 secondes",
+      "thumbnail": "assets/images/fermentation_feve.jpg",
+      "videoPath": "assets/videos/Shimmer_Loading_Effect___FLUTTER_Tutorial(720p).mp4"
+    },
+    {
+      "title": "Séchage des Fèves de Cacao",
+      "time": "150 secondes",
+      "thumbnail": "assets/images/sechage_feve.jpg",
+      "videoPath": "assets/videos/Shimmer_Loading_Effect___FLUTTER_Tutorial(720p).mp4"
+    },
+    {
+      "title": "Transformation en Pâte de Cacao",
+      "time": "180 secondes",
+      "thumbnail": "assets/images/pate_cacao.jpg",
+      "videoPath": "assets/videos/Shimmer_Loading_Effect___FLUTTER_Tutorial(720p).mp4"
+    }
+  ]

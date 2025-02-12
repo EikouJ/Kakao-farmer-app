@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 import "package:flutter/material.dart";
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:kakao_farmer/glob.dart';
@@ -22,7 +21,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: "Kakao Farmer",
       theme: ThemeData(
         primaryColor: const Color.fromARGB(255, 131, 41, 41), // Marron foncé
