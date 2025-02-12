@@ -72,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         print("L'enregistrement a échoué : ${response.statusCode}");
 
-        final data = json.decode(response.body);
+        //final data = json.decode(response.body);
         /*if (data["message"] != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data["message"])),

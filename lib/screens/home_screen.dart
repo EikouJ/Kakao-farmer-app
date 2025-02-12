@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           CircleAvatar(
                             radius: 30,
                             backgroundImage: AssetImage(
-                                'assets/avatar.png'), // Replace with your avatar image
+                                'assets/images/user-circle.png'), // Replace with your avatar image
                           ),
                           const SizedBox(height: 10),
                           Column(

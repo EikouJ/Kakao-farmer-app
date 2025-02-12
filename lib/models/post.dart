@@ -7,6 +7,7 @@ class Post {
   final String? description;
   final String? type;
   final String? date;
+  final int? likesCount;
 
   Post(
       {this.id,
@@ -14,7 +15,8 @@ class Post {
       this.link,
       this.description,
       this.type,
-      this.date});
+      this.date,
+      this.likesCount});
 
   Map<String, dynamic> toJson() {
     return {
@@ -23,7 +25,8 @@ class Post {
       'link': link,
       'description': description,
       'type': type,
-      'date': date
+      'date': date,
+      'likes_count': likesCount
     };
   }
 
@@ -33,6 +36,7 @@ class Post {
         link: json['link'],
         description: json['description'],
         type: json['type'],
-        date: json['date']);
+        date: json['date'],
+        likesCount: json['likes_count']);
   }
 }
